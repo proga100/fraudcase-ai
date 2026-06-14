@@ -1,0 +1,18 @@
+# secrets — NEVER ship these in an image
+.env
+fraudcase-gcp-key.json
+gcp-key.json
+*-key.json
+!fraudcase-gcp-key.example.json
+
+# local cruft
+.venv/
+venv/
+__pycache__/
+*.pyc
+.git/
+.claude/
+.grill/
+tests/
+sdn.csv
+*.md

@@ -1,0 +1,26 @@
+[
+  {
+    "rule_id": "P1",
+    "category": "Travel",
+    "max_amount": 5000,
+    "text": "Travel expenses above 5000 require VP approval."
+  },
+  {
+    "rule_id": "P2",
+    "category": "Consulting",
+    "max_amount": 50000,
+    "text": "Consulting invoices above 50000 require dual sign-off."
+  },
+  {
+    "rule_id": "P3",
+    "category": "Office Supplies",
+    "max_amount": 2000,
+    "text": "Office supply purchases capped at 2000 per invoice."
+  },
+  {
+    "rule_id": "P4",
+    "category": "*",
+    "max_amount": 100000,
+    "text": "Any single payment above 100000 requires CFO approval."
+  }
+]

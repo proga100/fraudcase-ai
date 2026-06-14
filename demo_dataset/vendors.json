@@ -1,0 +1,542 @@
+[
+  {
+    "vendor_id": "8f6ba412-0dcd-408a-98dd-1d962e196c3e",
+    "vendor_name": "Rodriguez, Figueroa and Sanchez",
+    "country": "Burundi",
+    "category": "Services",
+    "onboarded": "2025-01-05",
+    "is_ghost": false,
+    "risk_score": 0.04
+  },
+  {
+    "vendor_id": "f4c7ba19-7d12-48f6-bbe6-15b6b237da9e",
+    "vendor_name": "Yang, Gardner and Garza",
+    "country": "Antigua and Barbuda",
+    "category": "Services",
+    "onboarded": "2022-07-17",
+    "is_ghost": false,
+    "risk_score": 0.36
+  },
+  {
+    "vendor_id": "16c163d9-fcf9-4437-89e7-83d8fb2013e1",
+    "vendor_name": "Hall PLC",
+    "country": "Anguilla",
+    "category": "Software",
+    "onboarded": "2024-05-26",
+    "is_ghost": false,
+    "risk_score": 0.24
+  },
+  {
+    "vendor_id": "c4b857fb-accb-4f1d-82a4-fdb8d3d1685e",
+    "vendor_name": "Santos, Gardner and Robinson",
+    "country": "Namibia",
+    "category": "Software",
+    "onboarded": "2023-05-30",
+    "is_ghost": false,
+    "risk_score": 0.01
+  },
+  {
+    "vendor_id": "635d06bd-4e2a-46e6-bee0-75921ef03e88",
+    "vendor_name": "Blake and Sons",
+    "country": "Qatar",
+    "category": "Travel",
+    "onboarded": "2023-12-01",
+    "is_ghost": false,
+    "risk_score": 0.09
+  },
+  {
+    "vendor_id": "342ac83c-33a2-4396-ba71-329602148816",
+    "vendor_name": "Moore-Bernard",
+    "country": "Guadeloupe",
+    "category": "Office Supplies",
+    "onboarded": "2022-10-17",
+    "is_ghost": false,
+    "risk_score": 0.01
+  },
+  {
+    "vendor_id": "7cb55000-a09b-41f7-81fc-9a96003dbc23",
+    "vendor_name": "Davis-Abbott",
+    "country": "Netherlands",
+    "category": "Travel",
+    "onboarded": "2023-05-13",
+    "is_ghost": false,
+    "risk_score": 0.29
+  },
+  {
+    "vendor_id": "79c2342f-3abd-4652-8675-1f559139e932",
+    "vendor_name": "Blair PLC",
+    "country": "British Virgin Islands",
+    "category": "Services",
+    "onboarded": "2025-11-03",
+    "is_ghost": false,
+    "risk_score": 0.22
+  },
+  {
+    "vendor_id": "213d74ce-390b-4520-822f-0cd7f1c5c937",
+    "vendor_name": "Miller-Carter",
+    "country": "Niue",
+    "category": "Travel",
+    "onboarded": "2024-08-07",
+    "is_ghost": false,
+    "risk_score": 0.18
+  },
+  {
+    "vendor_id": "b282b075-04eb-4f29-8c56-95506e77fb47",
+    "vendor_name": "Ray-Bush",
+    "country": "Aruba",
+    "category": "Consulting",
+    "onboarded": "2024-10-01",
+    "is_ghost": false,
+    "risk_score": 0.32
+  },
+  {
+    "vendor_id": "d78e7543-d307-4e2f-a856-0ebb892c264e",
+    "vendor_name": "Galloway-Wyatt",
+    "country": "Tonga",
+    "category": "Software",
+    "onboarded": "2022-10-16",
+    "is_ghost": false,
+    "risk_score": 0.3
+  },
+  {
+    "vendor_id": "ecc56291-3cf3-41d1-8176-6a4954cfa4ce",
+    "vendor_name": "Chavez-Flowers",
+    "country": "Central African Republic",
+    "category": "Travel",
+    "onboarded": "2023-09-25",
+    "is_ghost": false,
+    "risk_score": 0.28
+  },
+  {
+    "vendor_id": "436c8650-65a2-4a88-b69a-7d6a5ba22931",
+    "vendor_name": "Santiago Ltd",
+    "country": "Vietnam",
+    "category": "Consulting",
+    "onboarded": "2024-10-29",
+    "is_ghost": false,
+    "risk_score": 0.11
+  },
+  {
+    "vendor_id": "89010872-8ef7-4520-8191-aeeb7e8437c7",
+    "vendor_name": "Lynch and Sons",
+    "country": "Martinique",
+    "category": "Travel",
+    "onboarded": "2024-12-26",
+    "is_ghost": false,
+    "risk_score": 0.38
+  },
+  {
+    "vendor_id": "743bbd82-140d-417a-8fad-9f970ce6938e",
+    "vendor_name": "Ford LLC",
+    "country": "Uzbekistan",
+    "category": "Consulting",
+    "onboarded": "2024-09-03",
+    "is_ghost": false,
+    "risk_score": 0.04
+  },
+  {
+    "vendor_id": "1a279ff5-b52d-4cbb-8b19-b98822bd86a9",
+    "vendor_name": "Robinson, Nguyen and Tate",
+    "country": "Azerbaijan",
+    "category": "Equipment",
+    "onboarded": "2023-03-28",
+    "is_ghost": false,
+    "risk_score": 0.04
+  },
+  {
+    "vendor_id": "1ca541fc-8e14-46cd-9b3f-9949ced2da1f",
+    "vendor_name": "Trujillo Group",
+    "country": "Ethiopia",
+    "category": "Marketing",
+    "onboarded": "2022-09-01",
+    "is_ghost": false,
+    "risk_score": 0.14
+  },
+  {
+    "vendor_id": "ada3434a-a6d0-466b-92c8-b5569d96c34a",
+    "vendor_name": "Walter, Edwards and Rios",
+    "country": "Indonesia",
+    "category": "Consulting",
+    "onboarded": "2025-07-13",
+    "is_ghost": false,
+    "risk_score": 0.32
+  },
+  {
+    "vendor_id": "3f365c2e-30df-46ca-a7ee-290c9d950b5e",
+    "vendor_name": "Ellis, Baker and Wright",
+    "country": "Monaco",
+    "category": "Services",
+    "onboarded": "2024-04-27",
+    "is_ghost": false,
+    "risk_score": 0.18
+  },
+  {
+    "vendor_id": "eaf59706-b441-4942-b707-73fdbb8a1d7b",
+    "vendor_name": "Richards, Hurst and Ross",
+    "country": "Cyprus",
+    "category": "Software",
+    "onboarded": "2025-12-04",
+    "is_ghost": false,
+    "risk_score": 0.39
+  },
+  {
+    "vendor_id": "4cd27438-060b-4cbb-81d5-38ea7e742100",
+    "vendor_name": "Hicks Inc",
+    "country": "Saudi Arabia",
+    "category": "Equipment",
+    "onboarded": "2022-08-08",
+    "is_ghost": false,
+    "risk_score": 0.03
+  },
+  {
+    "vendor_id": "383e35e4-74dc-49c2-a25d-7dd04cde05b5",
+    "vendor_name": "Hernandez and Sons",
+    "country": "Somalia",
+    "category": "Consulting",
+    "onboarded": "2024-10-25",
+    "is_ghost": false,
+    "risk_score": 0.33
+  },
+  {
+    "vendor_id": "7e08b069-4d39-4fca-9443-c91fe393f4e2",
+    "vendor_name": "Brown, James and Ferrell",
+    "country": "Marshall Islands",
+    "category": "Office Supplies",
+    "onboarded": "2023-04-26",
+    "is_ghost": false,
+    "risk_score": 0.35
+  },
+  {
+    "vendor_id": "5d325242-8c80-4001-b3cc-0fa558d633d0",
+    "vendor_name": "Valencia, Smith and Le",
+    "country": "Pitcairn Islands",
+    "category": "Consulting",
+    "onboarded": "2025-07-13",
+    "is_ghost": false,
+    "risk_score": 0.23
+  },
+  {
+    "vendor_id": "3a0db054-91e3-4bc0-a6a3-e63610261cce",
+    "vendor_name": "Mack-Peterson",
+    "country": "French Polynesia",
+    "category": "Services",
+    "onboarded": "2023-12-16",
+    "is_ghost": false,
+    "risk_score": 0.03
+  },
+  {
+    "vendor_id": "2192127e-d671-4030-ac79-cdf0f5fb6dcf",
+    "vendor_name": "Smith-Bowen",
+    "country": "Saint Helena",
+    "category": "Services",
+    "onboarded": "2023-05-11",
+    "is_ghost": false,
+    "risk_score": 0.09
+  },
+  {
+    "vendor_id": "ffc059ff-f27d-4c09-bf92-a5f0d67bfbc7",
+    "vendor_name": "Gill, Romero and Rodriguez",
+    "country": "Niue",
+    "category": "Consulting",
+    "onboarded": "2023-06-25",
+    "is_ghost": false,
+    "risk_score": 0.39
+  },
+  {
+    "vendor_id": "f69d2376-beaf-400b-8676-b11fb916ab87",
+    "vendor_name": "Romero, Gonzalez and Brooks",
+    "country": "Central African Republic",
+    "category": "Marketing",
+    "onboarded": "2024-04-28",
+    "is_ghost": false,
+    "risk_score": 0.09
+  },
+  {
+    "vendor_id": "a9887757-db3e-40ac-b3b0-95384cd80b94",
+    "vendor_name": "Sellers, George and Burns",
+    "country": "Bouvet Island (Bouvetoya)",
+    "category": "Software",
+    "onboarded": "2025-09-08",
+    "is_ghost": false,
+    "risk_score": 0.15
+  },
+  {
+    "vendor_id": "4274273a-6cb5-44fd-8c0a-3f4a1747c489",
+    "vendor_name": "Allen-Allen",
+    "country": "Montenegro",
+    "category": "Equipment",
+    "onboarded": "2026-05-26",
+    "is_ghost": true,
+    "risk_score": 0.84
+  },
+  {
+    "vendor_id": "c9146bd8-20af-4247-990f-fbedd403bc51",
+    "vendor_name": "Dennis Inc",
+    "country": "Senegal",
+    "category": "Consulting",
+    "onboarded": "2024-04-19",
+    "is_ghost": false,
+    "risk_score": 0.07
+  },
+  {
+    "vendor_id": "0b6194a7-6d35-4f80-a251-9f6475f8730a",
+    "vendor_name": "Anderson Group",
+    "country": "Yemen",
+    "category": "Consulting",
+    "onboarded": "2024-05-11",
+    "is_ghost": false,
+    "risk_score": 0.08
+  },
+  {
+    "vendor_id": "ac343645-6ed0-417d-898e-2c48859cb036",
+    "vendor_name": "Rose-Obrien",
+    "country": "Croatia",
+    "category": "Consulting",
+    "onboarded": "2025-09-08",
+    "is_ghost": false,
+    "risk_score": 0.28
+  },
+  {
+    "vendor_id": "80edbb2e-3c0c-4dc5-88fb-ced4b9a815da",
+    "vendor_name": "Vaughn, Marquez and Ross",
+    "country": "Paraguay",
+    "category": "Services",
+    "onboarded": "2026-05-19",
+    "is_ghost": true,
+    "risk_score": 0.94
+  },
+  {
+    "vendor_id": "0b42ebf4-9bf3-4af8-a042-3635234269c5",
+    "vendor_name": "Lam-Hayes",
+    "country": "Egypt",
+    "category": "Office Supplies",
+    "onboarded": "2023-03-23",
+    "is_ghost": false,
+    "risk_score": 0.25
+  },
+  {
+    "vendor_id": "0134efee-1514-4d24-a2a5-fce4e4aa44ab",
+    "vendor_name": "Smith-Spencer",
+    "country": "Namibia",
+    "category": "Office Supplies",
+    "onboarded": "2023-03-17",
+    "is_ghost": false,
+    "risk_score": 0.29
+  },
+  {
+    "vendor_id": "b4d1498a-8021-431c-bd10-0f9b309d1a79",
+    "vendor_name": "Zimmerman Inc",
+    "country": "Denmark",
+    "category": "Travel",
+    "onboarded": "2022-09-03",
+    "is_ghost": false,
+    "risk_score": 0.18
+  },
+  {
+    "vendor_id": "95f760a1-319b-4d89-9397-99c890eef911",
+    "vendor_name": "Heath Inc",
+    "country": "Malaysia",
+    "category": "Consulting",
+    "onboarded": "2023-04-09",
+    "is_ghost": false,
+    "risk_score": 0.4
+  },
+  {
+    "vendor_id": "c5f2c4cb-56d8-4714-818a-adcf6d5c40c4",
+    "vendor_name": "Washington, Ryan and Cummings",
+    "country": "Turkmenistan",
+    "category": "Services",
+    "onboarded": "2026-05-23",
+    "is_ghost": true,
+    "risk_score": 0.76
+  },
+  {
+    "vendor_id": "893bed36-1653-4695-b259-1e274d4da235",
+    "vendor_name": "Sanchez-Kennedy",
+    "country": "Ireland",
+    "category": "Travel",
+    "onboarded": "2023-02-07",
+    "is_ghost": false,
+    "risk_score": 0.27
+  },
+  {
+    "vendor_id": "5a680b5e-b210-4083-a6d1-591b0b04720c",
+    "vendor_name": "Hopkins LLC",
+    "country": "Jamaica",
+    "category": "Marketing",
+    "onboarded": "2023-11-16",
+    "is_ghost": false,
+    "risk_score": 0.31
+  },
+  {
+    "vendor_id": "682843f7-e7df-4384-89a2-f543f74a5c99",
+    "vendor_name": "Brown, Valdez and Lucas",
+    "country": "Bahamas",
+    "category": "Software",
+    "onboarded": "2023-11-05",
+    "is_ghost": false,
+    "risk_score": 0.09
+  },
+  {
+    "vendor_id": "4aa00b85-929f-48ca-94c6-5f8564294040",
+    "vendor_name": "Mcbride-Rodriguez",
+    "country": "Congo",
+    "category": "Software",
+    "onboarded": "2023-02-07",
+    "is_ghost": false,
+    "risk_score": 0.32
+  },
+  {
+    "vendor_id": "282ee935-f62d-4e81-a4ad-33251ee62e18",
+    "vendor_name": "Taylor-White",
+    "country": "Kyrgyz Republic",
+    "category": "Equipment",
+    "onboarded": "2023-04-24",
+    "is_ghost": false,
+    "risk_score": 0.11
+  },
+  {
+    "vendor_id": "f6d89681-ac67-48a2-9b07-48b7dd1d30c2",
+    "vendor_name": "Ramos PLC",
+    "country": "Bolivia",
+    "category": "Travel",
+    "onboarded": "2022-08-12",
+    "is_ghost": false,
+    "risk_score": 0.37
+  },
+  {
+    "vendor_id": "5675530f-b565-45a7-b604-c336d9b0cb75",
+    "vendor_name": "Huff, Novak and House",
+    "country": "Thailand",
+    "category": "Office Supplies",
+    "onboarded": "2023-04-07",
+    "is_ghost": false,
+    "risk_score": 0.35
+  },
+  {
+    "vendor_id": "179a900a-ce18-4e48-9f86-7c24165ff4b9",
+    "vendor_name": "Tucker-Lewis",
+    "country": "Iran",
+    "category": "Consulting",
+    "onboarded": "2025-08-05",
+    "is_ghost": false,
+    "risk_score": 0.09
+  },
+  {
+    "vendor_id": "80e89dfe-55f8-4b3e-9d76-c1dccc589eb3",
+    "vendor_name": "Gray Group",
+    "country": "Estonia",
+    "category": "Equipment",
+    "onboarded": "2025-09-05",
+    "is_ghost": false,
+    "risk_score": 0.16
+  },
+  {
+    "vendor_id": "3cfc48ba-d5cf-40d5-a65f-6a933fe55a0c",
+    "vendor_name": "Mitchell-Horton",
+    "country": "Saint Martin",
+    "category": "Services",
+    "onboarded": "2025-12-02",
+    "is_ghost": false,
+    "risk_score": 0.18
+  },
+  {
+    "vendor_id": "12d06bea-47bc-43fc-8ee8-a8c7ed0d8792",
+    "vendor_name": "Stanley, Tucker and Lee",
+    "country": "Cuba",
+    "category": "Consulting",
+    "onboarded": "2025-10-29",
+    "is_ghost": false,
+    "risk_score": 0.06
+  },
+  {
+    "vendor_id": "7a1413f4-ae15-4303-b40e-2ff0a0c6b20b",
+    "vendor_name": "Fitzgerald, Brown and Edwards",
+    "country": "Australia",
+    "category": "Services",
+    "onboarded": "2024-06-24",
+    "is_ghost": false,
+    "risk_score": 0.22
+  },
+  {
+    "vendor_id": "ecd9442f-4b64-4a9d-9d05-3d4fe24ea154",
+    "vendor_name": "Calhoun, Schmidt and Brown",
+    "country": "Malawi",
+    "category": "Consulting",
+    "onboarded": "2022-09-19",
+    "is_ghost": false,
+    "risk_score": 0.3
+  },
+  {
+    "vendor_id": "149b0222-f096-440c-95a7-127c9e6ad028",
+    "vendor_name": "Jones Inc",
+    "country": "Peru",
+    "category": "Equipment",
+    "onboarded": "2025-06-14",
+    "is_ghost": false,
+    "risk_score": 0.36
+  },
+  {
+    "vendor_id": "13bdfae1-aeca-4368-b49f-333ac4ffcfa3",
+    "vendor_name": "Wilson-Zamora",
+    "country": "Egypt",
+    "category": "Equipment",
+    "onboarded": "2024-06-17",
+    "is_ghost": false,
+    "risk_score": 0.14
+  },
+  {
+    "vendor_id": "0028cb3f-84d1-41cd-8074-e88468e9a952",
+    "vendor_name": "Harvey Group",
+    "country": "Palestinian Territory",
+    "category": "Travel",
+    "onboarded": "2024-06-23",
+    "is_ghost": false,
+    "risk_score": 0.2
+  },
+  {
+    "vendor_id": "0505c3d4-c5a6-47d3-bfba-98f3f0b6c38e",
+    "vendor_name": "Stewart, Green and Santiago",
+    "country": "Germany",
+    "category": "Software",
+    "onboarded": "2023-04-10",
+    "is_ghost": false,
+    "risk_score": 0.3
+  },
+  {
+    "vendor_id": "143cc10b-16b7-4e43-98a5-0ed1785c4dc8",
+    "vendor_name": "Anderson-Brewer",
+    "country": "Kuwait",
+    "category": "Marketing",
+    "onboarded": "2023-07-18",
+    "is_ghost": false,
+    "risk_score": 0.04
+  },
+  {
+    "vendor_id": "885f18ed-c2ef-480a-9844-d922d9464292",
+    "vendor_name": "Smith PLC",
+    "country": "Mongolia",
+    "category": "Services",
+    "onboarded": "2025-12-03",
+    "is_ghost": false,
+    "risk_score": 0.06
+  },
+  {
+    "vendor_id": "11f45c2e-3cb3-4c14-aa85-c759870edeaf",
+    "vendor_name": "Medina PLC",
+    "country": "Estonia",
+    "category": "Services",
+    "onboarded": "2022-11-25",
+    "is_ghost": false,
+    "risk_score": 0.17
+  },
+  {
+    "vendor_id": "08a32a6f-0989-480f-8ca8-9545c298f00e",
+    "vendor_name": "Ibarra-Suarez",
+    "country": "Heard Island and McDonald Islands",
+    "category": "Software",
+    "onboarded": "2023-06-08",
+    "is_ghost": false,
+    "risk_score": 0.15
+  }
+]

@@ -1,0 +1,19 @@
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.env
+
+# OFAC cache
+sdn.csv
+
+# private working context
+.claude/
+
+# service-account keys and local secrets
+fraudcase-gcp-key.json
+gcp-key.json
+*-key.json
+!fraudcase-gcp-key.example.json

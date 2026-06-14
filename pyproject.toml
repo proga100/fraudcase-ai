@@ -1,0 +1,16 @@
+[project]
+name = "fraudcase-ai"
+version = "0.1.0"
+description = "FraudCase AI finance transaction audit case workflow for UiPath Maestro Case"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["fraudcase_ai"]
+omit = ["fraudcase_ai/agent/agent.py"]  # thin assembly; covered by integration, not unit

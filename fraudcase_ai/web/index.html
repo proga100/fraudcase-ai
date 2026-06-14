@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FraudCase AI — Corporate Finance Audit Console</title>
+  <meta name="description" content="An AI corporate-finance audit agent built on Gemini/Vertex AI. It hunts duplicate invoices, ghost vendors, policy breaches, off-hours payments and OFAC sanctions risk over MongoDB Atlas Vector Search — with a human approving every consequential call." />
+  <!-- Open Graph -->
+  <meta property="og:title" content="FraudCase AI — Corporate Finance Audit Console" />
+  <meta property="og:description" content="AI audit agent that hunts payment fraud over MongoDB Atlas Vector Search — and keeps a human in control of every decision." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://fraudcase-ai.flance.info/" />
+  <meta property="og:site_name" content="FraudCase AI" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="FraudCase AI — Corporate Finance Audit Console" />
+  <meta name="twitter:description" content="AI audit agent that hunts payment fraud over MongoDB Atlas Vector Search — and keeps a human in control of every decision." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232563eb'/%3E%3Cpath d='M9 16l4 4 10-10' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              900: '#0a0f1e',
+              800: '#0f1629',
+              700: '#162040',
+              600: '#1e2d5a',
+              500: '#2563eb',
+              400: '#3b82f6',
+              300: '#93c5fd',
+            },
+            surface: {
+              900: '#0d1117',
+              800: '#161b22',
+              700: '#21262d',
+              600: '#30363d',
+              500: '#3d444d',
+            },
+            accent: {
+              green:  '#10b981',
+              yellow: '#f59e0b',
+              red:    '#ef4444',
+              orange: '#f97316',
+              purple: '#8b5cf6',
+              cyan:   '#06b6d4',
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body class="h-full bg-surface-900 text-gray-100 font-sans antialiased">
+
+<!-- Top bar -->
+<header class="fixed top-0 left-0 right-0 z-50 min-h-12 bg-surface-800 border-b border-surface-600 flex items-center px-4 lg:px-6 gap-4 flex-wrap py-2">
+  <div class="flex items-center gap-2.5">
+    <div class="w-7 h-7 rounded-md bg-brand-500 flex items-center justify-center">
+      <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+    </div>
+    <span class="font-semibold text-sm tracking-tight text-white">FraudCase AI</span>
+    <span class="text-surface-500 text-xs font-mono">v1.0</span>
+  </div>
+  <nav class="flex items-center gap-1 bg-surface-900/70 border border-surface-600 rounded-lg p-1">
+    <button id="tab-case" onclick="switchTab('case')" class="tab-btn active">Audit Case Control</button>
+    <button id="tab-findings" onclick="switchTab('findings')" class="tab-btn">Findings</button>
+    <button id="tab-reports" onclick="switchTab('reports')" class="tab-btn">Reports</button>
+  </nav>
+  <div id="integration-strip" class="hidden xl:flex items-center gap-2 text-[11px] text-gray-400 overflow-hidden"></div>
+  <div class="flex-1"></div>
+  <a href="https://github.com/proga100/fraudcase-ai" target="_blank" rel="noopener noreferrer" aria-label="View source on GitHub" title="View source on GitHub" class="flex items-center gap-1.5 text-gray-500 hover:text-white transition-colors text-xs">
+    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+    <span class="hidden lg:inline">GitHub</span>
+  </a>
+  <button onclick="openAskDrawer()" class="px-3 py-1.5 rounded-md bg-brand-500 hover:bg-brand-400 text-white text-xs font-semibold transition-colors">Ask Agent</button>
+  <div id="case-status-badge" class="hidden items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-surface-700 border border-surface-500">
+    <span id="status-dot" class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+    <span id="status-text">Idle</span>
+  </div>
+  <div class="flex items-center gap-1.5 text-xs text-gray-500 font-mono">
+    <span id="case-id-display" class="hidden">CASE:<span id="case-id-val" class="text-brand-300 ml-1"></span></span>
+  </div>
+</header>
+
+<!-- Main layout -->
+<div id="case-view" class="app-view flex h-full pt-16">
+
+  <!-- LEFT PANE: Audit Case Console -->
+  <div class="w-[520px] flex-shrink-0 border-r border-surface-600 flex flex-col bg-surface-900 overflow-hidden">
+
+    <!-- Case input section -->
+    <div class="order-last p-4 border-t border-surface-700 bg-surface-800 shadow-[0_-16px_34px_rgba(0,0,0,0.22)]">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-3.5 h-3.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest">Audit Case Console</h2>
+        <span class="ml-auto text-[10px] text-gray-600 uppercase tracking-wide">Audit presets</span>
+      </div>
+      <div id="onboarding-hint" class="flex items-center gap-2 mb-2 px-3 py-2 rounded-lg border border-brand-500/40 bg-brand-900/30 text-xs text-brand-300">
+        <span class="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse flex-shrink-0"></span>
+        <span>Pick a preset below and press <span class="font-semibold">Open Audit Case</span> to start a live audit.</span>
+      </div>
+      <div class="relative mb-2">
+        <textarea
+          id="case-input"
+          rows="2"
+          placeholder="Describe your audit case…"
+          class="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 resize-none focus:outline-none focus:ring-1 focus:ring-brand-400 focus:border-brand-400 font-mono leading-relaxed"
+        ></textarea>
+      </div>
+      <!-- Template buttons -->
+      <div class="grid grid-cols-3 gap-1.5 mb-2">
+        <button onclick="setTemplate(this)" data-text="Audit this month's vendor payments" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Vendor Payments</button>
+        <button onclick="setTemplate(this)" data-text="Hunt duplicate invoices across all departments" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Duplicates</button>
+        <button onclick="setTemplate(this)" data-text="Department budget check — flag overages" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Budget Check</button>
+        <button onclick="setTemplate(this)" data-text="Screen new vendors for OFAC hits and ghost vendor patterns" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Vendor Screen</button>
+        <button onclick="setTemplate(this)" data-text="Find off-hours payments and weekend invoice approvals above $10,000" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Off-hours</button>
+        <button onclick="setTemplate(this)" data-text="Find ghost vendors, inactive vendors, and vendors without valid onboarding evidence" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Ghost Vendors</button>
+        <button onclick="setTemplate(this)" data-text="Flag policy violations by department, category, and approval threshold" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Policy</button>
+        <button onclick="setTemplate(this)" data-text="Identify high-risk spend concentration by vendor, department, and category" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">High Risk</button>
+        <button onclick="setTemplate(this)" data-text="Screen vendors and payees for OFAC sanctions and watchlist risk" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">OFAC</button>
+        <button onclick="setTemplate(this)" data-text="Find split invoices that appear designed to stay below approval limits" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Split Spend</button>
+        <button onclick="setTemplate(this)" data-text="Audit contract leakage: invoice amounts, vendors, and categories outside expected contract scope" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Contract Leak</button>
+        <button onclick="setTemplate(this)" data-text="Review month-end payments for duplicate, policy, ghost-vendor, and off-hours risk" class="template-btn px-2 py-1 text-[11px] bg-surface-700 border border-surface-500 rounded-md text-gray-300 hover:border-brand-400 hover:text-brand-300 transition-colors">Month-end</button>
+      </div>
+      <button id="launch-btn" onclick="launchAuditCase()" class="w-full py-2 rounded-lg bg-brand-500 hover:bg-brand-400 text-white text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        Open Audit Case
+      </button>
+    </div>
+
+    <!-- Step timeline -->
+    <div id="timeline-scroll" class="order-first flex-1 overflow-y-auto scroll-smooth">
+      <div class="px-4 py-3 flex items-center gap-2 border-b border-surface-700">
+        <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        <span class="text-xs text-gray-500 font-medium uppercase tracking-wider">Live Step Timeline</span>
+      </div>
+
+      <div id="timeline" class="px-4 py-3 space-y-2">
+        <!-- Empty state -->
+        <div id="timeline-empty" class="py-12 text-center">
+          <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-700 flex items-center justify-center">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          </div>
+          <p class="text-sm text-gray-600">No audit casening</p>
+          <p class="text-xs text-gray-700 mt-1">Open an audit case to see live steps</p>
+        </div>
+      </div>
+
+      <!-- Gate 1: Plan approval -->
+      <div id="gate-plan" class="hidden mx-4 mb-4 rounded-xl border border-brand-500/40 bg-brand-900/30 overflow-hidden">
+        <div class="px-4 py-3 bg-brand-600/20 border-b border-brand-500/30 flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></div>
+          <span class="text-sm font-semibold text-brand-300">Gate 1 — Plan Approval</span>
+          <span class="ml-auto text-xs text-brand-400/70 font-mono">awaiting_approval</span>
+        </div>
+        <div class="p-4">
+          <p class="text-xs text-gray-400 mb-2 uppercase tracking-wide font-medium">Review or edit the proposed audit plan:</p>
+          <div id="plan-edit-area">
+            <textarea id="plan-edit-input" rows="6" class="w-full bg-surface-700 border border-surface-500 rounded-lg px-3 py-2 text-sm text-gray-100 font-mono resize-none focus:outline-none focus:ring-1 focus:ring-brand-400 mb-3 leading-relaxed"></textarea>
+          </div>
+          <div class="flex gap-2 mb-2">
+            <button id="approve-plan-btn" data-timeline-primary onclick="approvePlan()" class="flex-1 py-2 rounded-lg bg-accent-green/20 border border-accent-green/40 text-accent-green text-sm font-semibold hover:bg-accent-green/30 transition-colors">Approve Plan</button>
+            <button onclick="focusPlanEditor()" class="px-4 py-2 rounded-lg bg-surface-700 border border-surface-500 text-gray-300 text-sm font-semibold hover:border-gray-400 transition-colors">Edit</button>
+            <button onclick="rejectPlan()" class="px-4 py-2 rounded-lg bg-accent-red/20 border border-accent-red/40 text-accent-red text-sm font-semibold hover:bg-accent-red/30 transition-colors">Reject</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gate 2: Action approval -->
+      <div id="gate-action" class="hidden mx-4 mb-4 rounded-xl border border-accent-orange/40 bg-orange-950/20 overflow-hidden">
+        <div class="px-4 py-3 bg-accent-orange/10 border-b border-accent-orange/30 flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-accent-orange animate-pulse"></div>
+          <span class="text-sm font-semibold text-orange-300">Gate 2 — Action Approval</span>
+          <span class="ml-auto text-xs text-orange-400/70 font-mono">awaiting_approval</span>
+        </div>
+        <div class="p-4">
+          <p id="flagged-caption" class="text-xs text-gray-400 mb-3 uppercase tracking-wide font-medium">Flagged items — review &amp; approve:</p>
+
+          <!-- Flagged items table -->
+          <div class="rounded-lg border border-surface-600 max-h-[44vh] overflow-y-auto">
+            <table class="w-full text-xs">
+              <thead class="sticky top-0 z-10">
+                <tr class="bg-surface-700 border-b border-surface-600">
+                  <th class="px-2 py-2 text-left text-gray-400 font-medium">
+                    <input type="checkbox" id="select-all-cb" onchange="toggleSelectAll(this)" class="rounded border-surface-500" />
+                  </th>
+                  <th class="px-2 py-2 text-left text-gray-400 font-medium">Vendor</th>
+                  <th class="px-2 py-2 text-right text-gray-400 font-medium">Amount</th>
+                  <th class="px-2 py-2 text-left text-gray-400 font-medium">Flags</th>
+                  <th class="px-2 py-2 text-center text-gray-400 font-medium">OK?</th>
+                </tr>
+              </thead>
+              <tbody id="flagged-items-tbody" class="divide-y divide-surface-700">
+              </tbody>
+            </table>
+          </div>
+
+          <div class="flex gap-2 mt-3">
+            <button id="approve-action-btn" data-timeline-primary onclick="submitActionDecision()" class="flex-[2] py-2.5 rounded-lg bg-brand-500 text-white text-sm font-semibold hover:bg-brand-400 transition-colors">✓ Approve &amp; Write</button>
+            <button onclick="rejectAllAction()" class="flex-1 py-2.5 rounded-lg bg-surface-700 border border-surface-600 text-gray-300 text-sm font-medium hover:bg-surface-600 transition-colors">Reject All</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANE: Live Dashboard -->
+  <div class="flex-1 flex flex-col bg-surface-900 overflow-y-auto">
+
+    <div id="case-dashboard-header" class="p-5 border-b border-surface-700 bg-surface-800">
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-accent-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-widest">Live Dashboard</h2>
+      </div>
+    </div>
+
+    <div id="case-dashboard-content" class="p-5 flex flex-col gap-5">
+      <div class="rounded-xl bg-surface-800 border border-surface-600 p-4">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-xs font-semibold text-gray-400 uppercase tracking-widest">UiPath Maestro Case</span>
+          <span class="ml-auto text-[11px] text-gray-500">Human + agent + service-task handoffs</span>
+        </div>
+        <div class="grid grid-cols-6 gap-2 text-[11px]">
+          <span class="status-chip text-center">Intake</span>
+          <span class="status-chip text-center">Plan Review</span>
+          <span class="status-chip text-center">Investigation</span>
+          <span class="status-chip text-center">Exception Review</span>
+          <span class="status-chip text-center">Audit Log</span>
+          <span class="status-chip text-center">Report</span>
+        </div>
+      </div>
+
+      <!-- KPI row -->
+      <div class="grid grid-cols-3 gap-4">
+        <div class="rounded-xl bg-surface-800 border border-surface-600 p-4">
+          <p id="kpi-spend-label" class="text-xs text-gray-500 uppercase tracking-wider mb-1">Total Spend</p>
+          <p id="kpi-at-risk" class="text-2xl font-bold text-gray-200 tabular-nums">$0</p>
+          <p id="kpi-spend-note" class="text-xs text-gray-600 mt-1">Baseline scope — open an audit case to surface risk</p>
+        </div>
+        <div class="rounded-xl bg-surface-800 border border-surface-600 p-4">
+          <p id="kpi-flags-label" class="text-xs text-gray-500 uppercase tracking-wider mb-1">Invoices in Scope</p>
+          <p id="kpi-flags" class="text-2xl font-bold text-gray-200 tabular-nums">0</p>
+          <p id="kpi-flags-note" class="text-xs text-gray-600 mt-1">Baseline invoice count before findings</p>
+        </div>
+        <div class="rounded-xl bg-surface-800 border border-surface-600 p-4">
+          <p id="kpi-vendors-label" class="text-xs text-gray-500 uppercase tracking-wider mb-1">Vendors in Scope</p>
+          <p id="kpi-vendors" class="text-2xl font-bold text-brand-300 tabular-nums">—</p>
+          <p id="kpi-vendors-note" class="text-xs text-gray-600 mt-1">Baseline vendor population</p>
+        </div>
+      </div>
+
+      <!-- Charts row -->
+      <div class="grid grid-cols-2 gap-4">
+
+        <!-- Flags by department -->
+        <div class="rounded-xl bg-surface-800 border border-surface-600 p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">Flags by Department</span>
+          </div>
+          <div id="dept-chart" class="space-y-2">
+            <p class="text-xs text-gray-600 italic">Waiting for data…</p>
+          </div>
+        </div>
+
+        <!-- Vendor risk list -->
+        <div class="rounded-xl bg-surface-800 border border-surface-600 p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">Vendor Risk Signals</span>
+          </div>
+          <div id="vendor-chart" class="space-y-2">
+            <p class="text-xs text-gray-600 italic">Waiting for data…</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Report Preview -->
+      <div id="report-section" class="rounded-xl bg-surface-800 border border-surface-600 overflow-hidden">
+        <div class="px-4 py-3 border-b border-surface-600 bg-surface-700/50 flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">Audit Report</span>
+          <div class="flex-1"></div>
+          <button id="download-btn" onclick="downloadReport()" class="hidden items-center gap-1.5 px-3 py-1 rounded-md bg-brand-500 hover:bg-brand-400 text-white text-xs font-semibold transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Download .md
+          </button>
+          <button id="download-pdf-btn" onclick="downloadReportPdf()" class="hidden items-center gap-1.5 px-3 py-1 rounded-md bg-surface-700 border border-surface-500 hover:bg-surface-600 text-gray-200 text-xs font-semibold transition-colors">PDF</button>
+          <button id="download-excel-btn" onclick="downloadReportExcel()" class="hidden items-center gap-1.5 px-3 py-1 rounded-md bg-surface-700 border border-surface-500 hover:bg-surface-600 text-gray-200 text-xs font-semibold transition-colors">Excel</button>
+        </div>
+        <div id="report-content" class="p-4">
+          <div class="py-8 text-center">
+            <div class="w-10 h-10 mx-auto mb-2 rounded-full bg-surface-700 flex items-center justify-center">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <p class="text-sm text-gray-600">Report will appear here when the audit completes</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="case-invoice-review" class="hidden p-5 flex flex-col gap-5"></div>
+  </div>
+
+</div>
+
+<!-- Findings tab -->
+<section id="findings-view" class="app-view hidden h-full pt-16 bg-surface-900 overflow-y-auto">
+  <div class="p-5 grid grid-cols-1 xl:grid-cols-[1fr_460px] gap-5">
+    <div class="rounded-lg bg-surface-800 border border-surface-600 overflow-hidden">
+      <div class="px-4 py-3 border-b border-surface-600 bg-surface-700/50 flex items-center gap-2">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">Findings Review</span>
+        <span id="findings-count" class="ml-auto text-xs text-gray-500 font-mono">0 items</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-surface-700 border-b border-surface-600">
+            <tr>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">Vendor</th>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">Invoice</th>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">Dept</th>
+              <th class="px-3 py-2 text-right text-gray-400 font-medium">Amount</th>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">Reasons</th>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">Agent</th>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">Tool</th>
+              <th class="px-3 py-2 text-left text-gray-400 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody id="findings-tbody" class="divide-y divide-surface-700"></tbody>
+        </table>
+      </div>
+    </div>
+    <aside class="rounded-lg bg-surface-800 border border-surface-600 overflow-hidden">
+      <div class="px-4 py-3 border-b border-surface-600 bg-surface-700/50">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">Evidence Detail</span>
+      </div>
+      <div id="finding-detail" class="p-4 text-sm text-gray-500">
+        Select a finding to inspect its evidence.
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- Reports tab -->
+<section id="reports-view" class="app-view hidden h-full pt-16 bg-surface-900 overflow-y-auto">
+  <div class="p-5 grid grid-cols-1 xl:grid-cols-[1fr_420px] gap-5">
+    <div class="rounded-lg bg-surface-800 border border-surface-600 overflow-hidden">
+      <div class="px-4 py-3 border-b border-surface-600 bg-surface-700/50 flex items-center gap-2">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">Final Audit Report</span>
+        <div class="ml-auto flex gap-2">
+          <button onclick="downloadReport()" class="px-3 py-1 rounded-md bg-brand-500 hover:bg-brand-400 text-white text-xs font-semibold">Download .md</button>
+          <button onclick="downloadReportPdf()" class="px-3 py-1 rounded-md bg-surface-700 border border-surface-500 text-gray-300 text-xs font-semibold">PDF</button>
+          <button onclick="downloadReportExcel()" class="px-3 py-1 rounded-md bg-surface-700 border border-surface-500 text-gray-300 text-xs font-semibold">Excel</button>
+          <button onclick="exportFindingsCsv()" class="px-3 py-1 rounded-md bg-surface-700 border border-surface-500 text-gray-300 text-xs font-semibold">Export CSV</button>
+          <button onclick="copyCfoSummary()" class="px-3 py-1 rounded-md bg-surface-700 border border-surface-500 text-gray-300 text-xs font-semibold">Copy CFO Summary</button>
+        </div>
+      </div>
+      <div id="reports-report-content" class="p-4">
+        <p class="text-sm text-gray-600">Report will appear here when the audit completes.</p>
+      </div>
+    </div>
+    <aside class="rounded-lg bg-surface-800 border border-surface-600 overflow-hidden">
+      <div class="px-4 py-3 border-b border-surface-600 bg-surface-700/50">
+        <span class="text-xs font-medium text-gray-400 uppercase tracking-wide">Human Approval Log</span>
+      </div>
+      <div id="approval-log" class="p-4 space-y-2 text-sm text-gray-500">
+        No approvals recorded yet.
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- Ask Audit Agent drawer -->
+<div id="ask-backdrop" class="hidden fixed inset-0 z-[60] bg-black/50" onclick="closeAskDrawer()"></div>
+<aside id="ask-drawer" class="fixed top-0 right-0 z-[70] h-full w-full max-w-md translate-x-full bg-surface-800 border-l border-surface-600 shadow-2xl transition-transform duration-200 flex flex-col">
+  <div class="px-5 py-4 border-b border-surface-600 flex items-start gap-3">
+    <div>
+      <h2 class="text-sm font-semibold text-white">Ask Audit Agent</h2>
+      <p class="text-xs text-gray-500 mt-1">Ask about this audit case, vendors, invoices, or findings.</p>
+    </div>
+    <button onclick="closeAskDrawer()" class="ml-auto text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+  </div>
+  <div class="px-5 py-3 border-b border-surface-700 flex flex-wrap gap-2">
+    <button onclick="askPrompt('Why was this invoice flagged?')" class="prompt-chip">Why flagged?</button>
+    <button onclick="askPrompt('Top risky vendors')" class="prompt-chip">Top risky vendors</button>
+    <button onclick="askPrompt('Which case should I review first?')" class="prompt-chip">Review first</button>
+    <button onclick="askPrompt('Draft CFO summary')" class="prompt-chip">CFO summary</button>
+  </div>
+  <div id="ask-messages" class="flex-1 overflow-y-auto p-5 space-y-3 text-sm"></div>
+  <div class="p-4 border-t border-surface-600">
+    <div class="flex gap-2">
+      <input id="ask-input" type="text" placeholder="Ask a question..." class="flex-1 bg-surface-700 border border-surface-500 rounded-md px-3 py-2 text-sm text-gray-100 focus:outline-none focus:ring-1 focus:ring-brand-400" onkeydown="if(event.key==='Enter') submitAsk()" />
+      <button onclick="submitAsk()" class="px-4 rounded-md bg-brand-500 hover:bg-brand-400 text-white text-sm font-semibold">Ask</button>
+    </div>
+  </div>
+</aside>
+
+<!-- Frontend modules are loaded as classic scripts to preserve inline handlers. Keep this order. -->
+<script src="js/app.core.js"></script>
+<script src="js/app.events.js"></script>
+<script src="js/app.timeline.js"></script>
+<script src="js/app.gates.js"></script>
+<script src="js/app.dashboard.js"></script>
+<script src="js/app.exports.js"></script>
+<script src="js/app.ask.js"></script>
+<script src="js/app.utils.js"></script>
+</body>
+</html>

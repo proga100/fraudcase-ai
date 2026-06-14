@@ -1,0 +1,173 @@
+openapi: 3.0.3
+info:
+  title: FraudCase AI Maestro Adapter API
+  version: 0.1.0
+  description: API contract for UiPath Maestro Case and UiPath API Workflows.
+servers:
+  - url: http://127.0.0.1:8081
+    description: Local Docker demo
+paths:
+  /api/status:
+    get:
+      summary: Read service and orchestration status
+      responses:
+        "200":
+          description: Runtime status
+  /api/maestro/audit-cases:
+    post:
+      summary: Open a new FraudCase AI audit case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuditCaseRequest"
+            example:
+              text: Find off-hours payments above $10,000 and duplicate vendor payments.
+      responses:
+        "200":
+          description: Case opened
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditCaseStarted"
+  /api/maestro/audit-cases/{case_id}:
+    get:
+      summary: Read Maestro-facing audit case state
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      responses:
+        "200":
+          description: Current case state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditCaseSummary"
+        "404":
+          description: Case not found
+  /api/maestro/audit-cases/{case_id}/decisions:
+    post:
+      summary: Submit a human decision from UiPath Maestro
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApprovalDecision"
+            examples:
+              approvePlan:
+                value:
+                  gate: plan
+                  approved: true
+              approveFindings:
+                value:
+                  gate: action
+                  approved: true
+                  approved_ids:
+                    - INV-001
+                    - INV-002
+                  rejected_ids: []
+      responses:
+        "200":
+          description: Decision accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        "404":
+          description: Case not found
+  /api/report/{case_id}:
+    get:
+      summary: Fetch the generated audit report
+      parameters:
+        - $ref: "#/components/parameters/CaseId"
+      responses:
+        "200":
+          description: Audit report
+        "404":
+          description: Report not ready or case not found
+components:
+  parameters:
+    CaseId:
+      name: case_id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    AuditCaseRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Plain-English audit objective.
+    AuditCaseStarted:
+      type: object
+      required:
+        - case_id
+      properties:
+        case_id:
+          type: string
+    AuditCaseSummary:
+      type: object
+      required:
+        - case_id
+        - case_objective
+        - maestro_stage
+        - report_ready
+      properties:
+        case_id:
+          type: string
+        case_objective:
+          type: string
+        maestro_stage:
+          type: string
+          enum:
+            - case_intake
+            - audit_plan_review
+            - agent_investigation
+            - exception_review
+            - audit_log_write
+            - audit_report_ready
+            - closed
+        pending_gate:
+          type: string
+          nullable: true
+          enum:
+            - plan
+            - action
+        exception_count:
+          type: integer
+        report_ready:
+          type: boolean
+    ApprovalDecision:
+      type: object
+      required:
+        - gate
+      properties:
+        gate:
+          type: string
+          enum:
+            - plan
+            - action
+        approved:
+          type: boolean
+          default: true
+        edited_plan:
+          type: string
+          nullable: true
+        approved_ids:
+          type: array
+          items:
+            type: string
+        rejected_ids:
+          type: array
+          items:
+            type: string

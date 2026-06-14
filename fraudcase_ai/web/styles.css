@@ -1,0 +1,9 @@
+/* FraudCase AI frontend styles
+ * Keep imports ordered from broad foundations to narrow interaction states.
+ */
+
+@import url("styles/base.css");
+@import url("styles/findings.css");
+@import url("styles/timeline.css");
+@import url("styles/reports.css");
+@import url("styles/animations.css");
