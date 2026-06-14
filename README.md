@@ -115,7 +115,7 @@ Exception-path demo:
 Use an objective containing `timeout`, `vendor not found`, `exception`, `low confidence`, or `unclear duplicate`, for example:
 
 ```text
-Find off-hours payments above $10,000 and simulate a MongoDB timeout exception.
+Find off-hours payments above $10,000 and simulate a Context Grounding timeout exception.
 ```
 
 The timeline will show a recoverable case exception before Gate 2 review, demonstrating failure handling and human escalation.
@@ -128,7 +128,7 @@ Recommended 3-5 minute flow:
 2. Start the case with: `Find off-hours payments above $10,000`.
 3. Show the generated audit plan.
 4. Approve Gate 1 as the human auditor.
-5. Show tool calls for MongoDB vector search, aggregation, policy checks, duplicate detection, ghost vendors, and off-hours payments.
+5. Show tool calls for UiPath Data Service reads, UiPath Context Grounding evidence retrieval, spend aggregation, policy checks, duplicate detection, ghost vendors, and off-hours payments.
 6. Show suspicious invoices and approve/reject Gate 2 findings.
 7. Show audit-log write and report generation.
 8. Export Markdown, PDF, or Excel.
@@ -141,10 +141,14 @@ Mock mode is enabled by default:
 
 ```env
 USE_MOCKS=true
-DB_NAME=fraudcase_ai
 ```
 
-For live integrations, configure MongoDB and Gemini/Vertex AI values in `.env`. Use `fraudcase-gcp-key.example.json` as a placeholder schema only. Do not commit real private keys.
+For live integrations, set `USE_MOCKS=false` and configure the UiPath Automation Cloud,
+Data Service, and Context Grounding values in `.env` (see `.env.example`). UiPath Data
+Service is the system of record and UiPath Context Grounding owns embeddings, vector
+indexing, and retrieval — this service never calls a database or embedding model directly.
+With the UiPath endpoints unset, live mode falls back to the local demo dataset so it still
+runs credential-free. Never commit real secrets.
 
 ## Verification
 

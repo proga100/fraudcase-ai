@@ -21,8 +21,7 @@
   color: #9ca3af;
   white-space: nowrap;
 }
-.tool-chip.mongo { color: #86efac; border-color: rgba(16,185,129,0.45); background: rgba(16,185,129,0.10); }
-.tool-chip.gemini { color: #93c5fd; border-color: rgba(59,130,246,0.45); background: rgba(59,130,246,0.10); }
+.tool-chip.uipath { color: #93c5fd; border-color: rgba(59,130,246,0.45); background: rgba(59,130,246,0.10); }
 .tool-chip.detector { color: #d1d5db; border-color: rgba(156,163,175,0.35); background: rgba(156,163,175,0.08); }
 .tool-chip.human { color: #fcd34d; border-color: rgba(245,158,11,0.45); background: rgba(245,158,11,0.10); }
 .prompt-chip { font-size: 12px; cursor: pointer; }

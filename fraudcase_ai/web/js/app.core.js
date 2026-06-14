@@ -79,8 +79,8 @@ function renderIntegrationStrip() {
   el.classList.remove('hidden');
   el.innerHTML = `
     <span class="status-chip">${escHtml(runtime)}</span>
-    <span class="tool-chip gemini">${escHtml(s.gemini_model || 'Gemini 3.x')}</span>
-    <span class="tool-chip mongo">${s.mcp_enabled ? 'MongoDB MCP' : 'MongoDB MCP ready'}</span>
+    <span class="tool-chip uipath">${escHtml(s.system_of_record || 'UiPath Data Service')}</span>
+    <span class="tool-chip uipath">${escHtml(s.evidence_engine || 'UiPath Context Grounding')}</span>
     <span class="tool-chip human">Human Approval</span>
     <span class="status-chip">${String(s.mode || 'demo').toUpperCase()}</span>
   `;
@@ -140,8 +140,8 @@ async function launchAuditCase() {
     updatePendingTimelineCard('case-start', {
       label: 'Planning',
       agent: 'AuditPlanningAgent',
-      toolLabel: state.appStatus?.gemini_model || 'Gemini 3.x',
-      message: 'Gemini is drafting the first audit plan',
+      toolLabel: state.appStatus?.reasoning_engine || 'FraudCase AI agent',
+      message: 'The audit agent is drafting the first audit plan',
     });
     startSSE(case_id);
   } catch (err) {

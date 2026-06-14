@@ -1,16 +1,15 @@
-"""Pure, testable data pipeline functions for FraudCase AI.
+"""JSON loading for FraudCase AI's local/demo dataset.
 
-All I/O side effects (real embedder, real MongoDB) are injected so unit tests
-can pass a fake embedder and mongomock without any network calls.
+The live system of record is UiPath Data Service; this loader only backs the
+credential-free local fallback (used by the UiPath clients and tests). Embedding
+generation and vector indexing are owned by UiPath Context Grounding, not by this
+service, so no embedder or database client lives here anymore.
 """
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Callable
-
-from pymongo.database import Database
 
 from fraudcase_ai.models import Invoice, Policy, Vendor
 
@@ -50,102 +49,3 @@ def load_json_dir(path: str | Path) -> dict[str, list[dict]]:
     result["budgets"] = [raw_budgets] if isinstance(raw_budgets, dict) else raw_budgets
 
     return result
-
-
-# --------------------------------------------------------------------------- #
-# 2.  Build embeddable documents
-# --------------------------------------------------------------------------- #
-
-def build_documents(
-    invoices: list[dict],
-    embedder: Callable[[str], list[float]],
-) -> list[dict]:
-    """Attach an `embedding` vector to each invoice dict.
-
-    Args:
-        invoices: Raw invoice dicts (as returned by load_json_dir or any
-                  list[dict] with an ``embedding_text`` key).
-        embedder: Callable ``(text: str) -> list[float]``.  In production
-                  this wraps the real Gemini API; in tests it is a deterministic
-                  hash-based fake so no network is required.
-
-    Returns:
-        A new list of dicts; original dicts are not mutated.
-    """
-    docs: list[dict] = []
-    for inv in invoices:
-        doc = dict(inv)
-        text: str = doc.get("embedding_text") or ""
-        doc["embedding"] = embedder(text)
-        docs.append(doc)
-    return docs
-
-
-# --------------------------------------------------------------------------- #
-# 3.  Idempotent upsert into MongoDB collections
-# --------------------------------------------------------------------------- #
-
-def upsert_collections(
-    db: Database,
-    invoices: list[dict],
-    vendors: list[dict],
-    policies: list[dict],
-    budgets: list[dict],
-) -> dict[str, int]:
-    """Upsert all four collections idempotently.
-
-    Uses ``replace_one(filter, doc, upsert=True)`` so running this function
-    twice produces the same state (no duplicates).
-
-    Works with both real PyMongo and mongomock.
-
-    Returns:
-        A summary dict with upserted/matched counts per collection.
-    """
-    summary: dict[str, int] = {}
-
-    # invoices -> transactions collection
-    txn_count = 0
-    for doc in invoices:
-        db.transactions.replace_one(
-            {"invoice_id": doc["invoice_id"]},
-            doc,
-            upsert=True,
-        )
-        txn_count += 1
-    summary["transactions"] = txn_count
-
-    # vendors
-    vendor_count = 0
-    for doc in vendors:
-        db.vendors.replace_one(
-            {"vendor_id": doc["vendor_id"]},
-            doc,
-            upsert=True,
-        )
-        vendor_count += 1
-    summary["vendors"] = vendor_count
-
-    # policies
-    policy_count = 0
-    for doc in policies:
-        db.policies.replace_one(
-            {"rule_id": doc["rule_id"]},
-            doc,
-            upsert=True,
-        )
-        policy_count += 1
-    summary["policies"] = policy_count
-
-    # budgets (store as a single config doc keyed by a sentinel)
-    budget_count = 0
-    for doc in budgets:
-        db.config.replace_one(
-            {"_config_key": "dept_budgets"},
-            {**doc, "_config_key": "dept_budgets"},
-            upsert=True,
-        )
-        budget_count += 1
-    summary["budgets"] = budget_count
-
-    return summary

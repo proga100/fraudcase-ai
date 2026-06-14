@@ -137,9 +137,9 @@ async def start_audit_case(body: AuditCaseRequest) -> AuditCaseStarted:
     if settings.use_mocks:
         runner = FakeRunner()
     else:
-        from fraudcase_ai.server.real_runner import RealRunner
+        from fraudcase_ai.server.uipath_runner import UiPathRunner
 
-        runner = RealRunner()  # live: Gemini + Atlas vector search
+        runner = UiPathRunner()  # live: UiPath Data Service + Context Grounding
     record = store.create_case(body, runner)
     asyncio.create_task(_process_case(record.case_id, store))
     return AuditCaseStarted(case_id=record.case_id)

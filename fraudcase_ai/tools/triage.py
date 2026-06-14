@@ -7,6 +7,7 @@ so every execution path proposes the same evidence-backed candidates.
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import Any
 
 from fraudcase_ai.models import FlaggedItem, FlaggedReason, Invoice, Policy, Vendor
 from fraudcase_ai.tools.dedup import find_exact_duplicates
@@ -23,15 +24,21 @@ HIGH_SIGNAL = {
 }
 
 
-def assemble_flagged(db, vector_hits: list[dict]) -> list[FlaggedItem]:
-    """Run the detector suite over the ledger and return prioritised candidates.
+def assemble_flagged_records(
+    invoices_raw: list[dict[str, Any]],
+    vendors_raw: list[dict[str, Any]],
+    policies_raw: list[dict[str, Any]],
+    retrieval_hits: list[dict[str, Any]],
+) -> list[FlaggedItem]:
+    """Run detector suite over UiPath Data Service records.
 
-    Detectors: policy limits, ghost vendors, off-hours payments, exact duplicates,
-    plus vector-similarity hits supplied by the caller (real `$vectorSearch` output).
+    Context Grounding supplies retrieval hits with an ``invoice_id`` and optional
+    ``score``. The application does not create embeddings directly in this path;
+    UiPath owns indexing, embedding generation, and retrieval.
     """
-    invoices = [Invoice.model_validate(d) for d in db.transactions.find({}, {"embedding": 0})]
-    vendors = {v["vendor_id"]: Vendor.model_validate(v) for v in db.vendors.find({}, {"_id": 0})}
-    policies = [Policy.model_validate(p) for p in db.policies.find({}, {"_id": 0})]
+    invoices = [Invoice.model_validate(d) for d in invoices_raw]
+    vendors = {v["vendor_id"]: Vendor.model_validate(v) for v in vendors_raw}
+    policies = [Policy.model_validate(p) for p in policies_raw]
     by_id = {i.invoice_id: i for i in invoices}
 
     reasons: dict[str, set[FlaggedReason]] = defaultdict(set)
@@ -54,14 +61,13 @@ def assemble_flagged(db, vector_hits: list[dict]) -> list[FlaggedItem]:
         reasons[dup_id].add(FlaggedReason.DUPLICATE)
         details[dup_id].append(f"exact duplicate of {original_id}")
 
-    # vector-similar to the audit case objective (real $vectorSearch results)
-    for h in vector_hits:
-        score = h.get("score", 0.0)
-        iid = h.get("invoice_id")
-        if iid and score >= VECTOR_SIMILAR_MIN:
-            reasons[iid].add(FlaggedReason.VECTOR_SIMILAR)
-            sims[iid] = score
-            details[iid].append(f"semantically matches the audit query ({score:.2f})")
+    for hit in retrieval_hits:
+        score = float(hit.get("score") or hit.get("similarity") or 0.0)
+        invoice_id = hit.get("invoice_id") or hit.get("id")
+        if invoice_id and score >= VECTOR_SIMILAR_MIN:
+            reasons[invoice_id].add(FlaggedReason.VECTOR_SIMILAR)
+            sims[invoice_id] = score
+            details[invoice_id].append(f"matched UiPath Context Grounding evidence ({score:.2f})")
 
     items: list[FlaggedItem] = []
     for iid, rset in reasons.items():
@@ -69,12 +75,15 @@ def assemble_flagged(db, vector_hits: list[dict]) -> list[FlaggedItem]:
         if inv is None:
             continue
         items.append(FlaggedItem(
-            invoice_id=iid, vendor_name=inv.vendor_name, department=inv.department,
-            amount=inv.amount, reasons=sorted(rset, key=lambda r: r.value),
-            similarity=sims.get(iid), detail="; ".join(details[iid]),
+            invoice_id=iid,
+            vendor_name=inv.vendor_name,
+            department=inv.department,
+            amount=inv.amount,
+            reasons=sorted(rset, key=lambda r: r.value),
+            similarity=sims.get(iid),
+            detail="; ".join(details[iid]),
         ))
 
-    # Prioritise: high-signal fraud first, then by # of distinct reasons, then $.
     def _priority(it: FlaggedItem):
         high = len(set(it.reasons) & HIGH_SIGNAL)
         return (high > 0, high, len(it.reasons), it.amount)

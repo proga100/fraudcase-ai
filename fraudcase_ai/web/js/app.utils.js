@@ -251,8 +251,7 @@ function escAttr(s) {
 
 function toolChipClass(label) {
   const s = String(label || '').toLowerCase();
-  if (s.includes('mongodb mcp')) return 'mongo';
-  if (s.includes('gemini') || s.includes('vertex')) return 'gemini';
+  if (s.includes('uipath')) return 'uipath';
   if (s.includes('human')) return 'human';
   return 'detector';
 }

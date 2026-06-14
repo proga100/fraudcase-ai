@@ -1,17 +1,13 @@
 # --- runtime ---
-faker
-pymongo
-google-genai          # current Vertex AI GenAI SDK (embeddings: gemini-embedding-001)
-mcp                   # MCP client SDK — runtime reads via the MongoDB MCP server
+faker                 # demo dataset generation only (demo_dataset/generate_data.py)
 fastapi
 uvicorn[standard]
+httpx                 # UiPath Data Service + Context Grounding HTTP calls
 pydantic>=2
 pydantic-settings>=2
 
 # --- test ---
 pytest
 pytest-asyncio
-mongomock             # in-memory MongoDB for tests (no Atlas needed)
-respx                 # mock HTTP (OFAC SDN fetch)
-httpx
+respx                 # mock HTTP (UiPath clients + OFAC SDN fetch)
 coverage

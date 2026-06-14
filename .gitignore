@@ -12,8 +12,5 @@ sdn.csv
 # private working context
 .claude/
 
-# service-account keys and local secrets
-fraudcase-gcp-key.json
-gcp-key.json
+# local secrets / credential files
 *-key.json
-!fraudcase-gcp-key.example.json
