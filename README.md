@@ -150,6 +150,24 @@ indexing, and retrieval — this service never calls a database or embedding mod
 With the UiPath endpoints unset, live mode falls back to the local demo dataset so it still
 runs credential-free. Never commit real secrets.
 
+## UiPath Coded Agent
+
+The same audit logic ships as a UiPath **coded agent** (UiPath Python SDK) for
+deployment to Automation Cloud and orchestration by a Maestro Case. It exposes three
+entrypoints — `plan`, `investigate`, `finalize` — in
+[`fraudcase_ai/coded_agent/`](fraudcase_ai/coded_agent/), mapped in
+[`uipath.json`](uipath.json):
+
+```bash
+pip install -r requirements.txt   # includes the `uipath` SDK + CLI
+uipath auth && uipath init        # authenticate + discover entrypoints
+uipath run investigate '{"objective": "Audit this month vendor payments"}'
+uipath pack && uipath publish     # package + deploy to Orchestrator
+```
+
+See [docs/agenthack-alignment.md](docs/agenthack-alignment.md) for the full AgentHack
+alignment plan (coded agent, Agent Builder reasoning, Maestro Case orchestration).
+
 ## Verification
 
 ```bash

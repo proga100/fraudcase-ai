@@ -6,6 +6,9 @@ httpx                 # UiPath Data Service + Context Grounding HTTP calls
 pydantic>=2
 pydantic-settings>=2
 
+# --- UiPath coded agent (deploy to Automation Cloud) ---
+uipath                # UiPath Python SDK + CLI (uipath init/pack/publish)
+
 # --- test ---
 pytest
 pytest-asyncio

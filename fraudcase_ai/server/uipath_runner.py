@@ -24,6 +24,8 @@ from collections import defaultdict
 from typing import AsyncIterator
 
 from fraudcase_ai.agent import roster
+from fraudcase_ai.agent.narration import build_narrative as _build_narrative
+from fraudcase_ai.agent.narration import build_plan as _build_plan
 from fraudcase_ai.agent.report import render_report
 from fraudcase_ai.models import (
     AgentEvent,
@@ -31,38 +33,12 @@ from fraudcase_ai.models import (
     ApprovalGate,
     AuditCaseRequest,
     EventType,
-    FlaggedItem,
     maestro_event_context,
 )
 from fraudcase_ai.tools.triage import assemble_flagged_records
 from fraudcase_ai.uipath.clients import ContextGroundingRetriever, DataServiceStore
 
 MAX_FLAGGED = 40  # cap: a human reviews exceptions, not hundreds of rows
-
-
-def _build_plan(objective: str) -> str:
-    """Deterministic audit plan (no LLM). Mirrors the live tool sequence."""
-    return (
-        f"Audit objective: {objective}\n"
-        "1. Read transactions, vendors, and policies from UiPath Data Service.\n"
-        "2. Retrieve semantically relevant invoice evidence from UiPath Context Grounding.\n"
-        "3. Run deterministic checks: duplicate, policy, ghost vendor, off-hours, sanctions.\n"
-        "4. Aggregate spend by department.\n"
-        "5. Propose a flagged exception list for your approval.\n"
-        "6. Write approved findings and the audit log back to UiPath Data Service."
-    )
-
-
-def _build_narrative(objective: str, flagged: int, at_risk: float, reasons: list[str]) -> str:
-    """Deterministic report narrative (no LLM)."""
-    risk_types = len(set(reasons))
-    return (
-        f"Audit objective '{objective}' flagged {flagged} transactions totalling "
-        f"${at_risk:,.0f} at risk across {risk_types} risk "
-        f"type{'s' if risk_types != 1 else ''}. Evidence was retrieved from UiPath "
-        "Context Grounding and every write was approved by a human auditor before it "
-        "reached the UiPath Data Service audit log."
-    )
 
 
 class UiPathRunner:
