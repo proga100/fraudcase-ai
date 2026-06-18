@@ -23,9 +23,10 @@ def test_sample_fixtures_load(invoices, vendors, policies):
     assert all(i.embedding for i in invoices)
 
 
-def test_mock_db_populated(mock_db):
-    assert mock_db.transactions.count_documents({}) == 6
-    assert mock_db.vendors.count_documents({}) == 2
+def test_sample_records_shape(records):
+    transactions, vendors, _policies = records
+    assert len(transactions) == 6
+    assert len(vendors) == 2
 
 
 def test_event_sse_roundtrip():

@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "plan": "fraudcase_ai/coded_agent/main.py:plan",
+    "investigate": "fraudcase_ai/coded_agent/main.py:investigate",
+    "finalize": "fraudcase_ai/coded_agent/main.py:finalize"
+  }
+}

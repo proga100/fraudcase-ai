@@ -201,7 +201,7 @@ function renderInvoiceExplanationBlock(item) {
       ${renderInvoiceAgentActivity('complete', explanation.model)}
       <div class="flex items-center gap-2">
         <p class="text-xs text-brand-200 uppercase tracking-wide font-semibold">AI Explanation</p>
-        <span class="ml-auto text-[11px] text-gray-500">${escHtml(explanation.model || state.appStatus?.gemini_model || 'Gemini 3.x')}</span>
+        <span class="ml-auto text-[11px] text-gray-500">${escHtml(explanation.model || state.appStatus?.reasoning_engine || 'FraudCase AI agent')}</span>
       </div>
       <p class="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-200">${escHtml(explanation.answer)}</p>
       <p class="mt-3 text-[11px] text-gray-500">AI-generated — requires human review before approval.</p>
@@ -210,7 +210,7 @@ function renderInvoiceExplanationBlock(item) {
 }
 
 function renderInvoiceAgentActivity(status, model) {
-  const modelLabel = model || state.appStatus?.gemini_model || 'Gemini 3.x';
+  const modelLabel = model || state.appStatus?.reasoning_engine || 'FraudCase AI agent';
   const rows = status === 'running'
     ? [
         ['AuditAssistantAgent', 'Reviewing clicked invoice evidence', true],
@@ -273,7 +273,7 @@ async function approvePlan() {
   showPendingTimelineCard('plan-approved', {
     label: 'Continuing',
     agent: 'AuditPlanningAgent',
-    toolLabel: state.appStatus?.gemini_model || 'Gemini 3.x',
+    toolLabel: state.appStatus?.reasoning_engine || 'FraudCase AI agent',
     message: 'Plan approved. Agents are preparing evidence queries',
   });
   await postApproval({ gate: 'plan', approved: true, ...(changed ? { edited_plan: edited } : {}) });
@@ -313,7 +313,7 @@ async function submitActionDecision() {
   showPendingTimelineCard('action-approved', {
     label: 'Writing',
     agent: 'AuditTrailAgent',
-    toolLabel: 'MongoDB Atlas · gated write',
+    toolLabel: 'UiPath Data Service · gated write',
     message: 'Writing approved findings and preparing the report',
   });
   await postApproval({ gate: 'action', approved: true, approved_ids: approvedIds, rejected_ids: rejectedIds });

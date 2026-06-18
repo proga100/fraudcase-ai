@@ -82,7 +82,7 @@ function renderReportGenerating() {
 }
 
 function reportGeneratingHtml() {
-  const model = state.appStatus?.gemini_model || 'Gemini 3.x';
+  const model = state.appStatus?.reasoning_engine || 'FraudCase AI agent';
   const steps = [
     ['AuditTrailAgent', 'Finalizing approved findings in the audit log'],
     ['ReportGenerationAgent', 'Assembling executive summary, evidence table, and remediation notes'],

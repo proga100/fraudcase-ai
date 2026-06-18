@@ -1,8 +1,9 @@
-"""Runtime configuration + the MOCK/REAL switch.
+"""Runtime configuration + the MOCK/UiPath switch.
 
-Everything is built and tested with USE_MOCKS=true (no Atlas, no GCP). When your
-credentials exist, set USE_MOCKS=false and supply ATLAS_URI / GCP_PROJECT — no code
-changes required.
+Everything is built and tested with USE_MOCKS=true. When UiPath credentials and
+workflow endpoints exist, set USE_MOCKS=false and supply the UiPath settings below.
+The live architecture is UiPath-first: Data Service stores structured records and
+Context Grounding provides retrieval over indexed evidence.
 """
 
 from __future__ import annotations
@@ -22,28 +23,28 @@ class Settings(BaseSettings):
     # --- mock switch ---
     use_mocks: bool = True  # tests + local dev default; flip to false with real creds
 
-    # --- MongoDB ---
-    atlas_uri: str = ""
-    db_name: str = "fraudcase_ai"
-    txn_collection: str = "transactions"
-    vendor_collection: str = "vendors"
-    policy_collection: str = "policies"
-    config_collection: str = "config"
-    audit_collection: str = "audit_log"
-    vector_index_name: str = "txn_vector_index"
+    # --- UiPath Automation Cloud ---
+    uipath_oauth_token_url: str = ""
+    uipath_client_id: str = ""
+    uipath_client_secret: str = ""
+    uipath_scope: str = ""
 
-    # --- Google Cloud / Vertex AI ---
-    gcp_project: str = ""
-    gcp_region: str = "us-central1"             # embeddings region
-    gemini_model: str = "gemini-3.1-pro-preview"  # Gemini 3 family
-    gemini_location: str = "global"             # Gemini 3 preview models serve from `global`
-    embedding_model: str = "gemini-embedding-001"
-    embedding_dims: int = 768
+    # Data Service entity endpoints. Keep these configurable because tenant,
+    # folder, region, and generated entity URLs differ between UiPath accounts.
+    uipath_dataservice_transactions_url: str = ""
+    uipath_dataservice_vendors_url: str = ""
+    uipath_dataservice_policies_url: str = ""
+    uipath_dataservice_audit_log_url: str = ""
 
-    # --- MongoDB MCP server (read path) ---
-    mcp_command: str = "npx"
-    mcp_args: str = "-y,mongodb-mcp-server,--readOnly"
-    use_mcp_reads: bool = True  # run the live vector search through the MCP server
+    # UiPath API Workflow endpoint that queries a Context Grounding index and
+    # returns relevant invoice evidence. Context Grounding owns embeddings.
+    uipath_context_grounding_query_url: str = ""
+    uipath_context_grounding_index_name: str = "fraudcase-ai-evidence"
+
+    # Coded-agent reasoning: name of the UiPath Agent Builder agent that authors
+    # the audit plan (Phase 3). Empty -> the coded agent uses its deterministic
+    # planner. The agent itself is created tenant-side in Agent Builder.
+    uipath_plan_agent_name: str = ""
 
     # --- OFAC ---
     ofac_sdn_url: str = "https://www.treasury.gov/ofac/downloads/sdn.csv"

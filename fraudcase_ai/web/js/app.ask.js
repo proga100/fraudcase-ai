@@ -39,7 +39,7 @@ async function explainInvoiceDocument(invoiceId) {
   const toolData = {
     tool: 'invoice_explanation',
     agent: 'AuditAssistantAgent',
-    tool_label: state.appStatus?.gemini_model || 'Gemini 3.x',
+    tool_label: state.appStatus?.reasoning_engine || 'FraudCase AI agent',
     args: {
       invoice_id: item.invoice_id,
       vendor_name: item.vendor_name,
@@ -54,7 +54,7 @@ async function explainInvoiceDocument(invoiceId) {
   showPendingTimelineCard(pendingId, {
     label: 'Analyzing',
     agent: 'AuditAssistantAgent',
-    toolLabel: state.appStatus?.gemini_model || 'Gemini 3.x',
+    toolLabel: state.appStatus?.reasoning_engine || 'FraudCase AI agent',
     message: `Reading invoice ${item.invoice_id} evidence`,
   });
   const card = appendTimelineCard('tool_call', toolData);
@@ -77,7 +77,7 @@ async function explainInvoiceDocument(invoiceId) {
     appendTimelineCard('tool_result', {
       tool: 'invoice_explanation',
       agent: 'AuditAssistantAgent',
-      tool_label: answer.model || state.appStatus?.gemini_model || 'Gemini 3.x',
+      tool_label: answer.model || state.appStatus?.reasoning_engine || 'FraudCase AI agent',
       count: 1,
     });
   } catch (err) {
@@ -139,7 +139,7 @@ async function submitAsk() {
   const toolData = {
     tool: 'ask_audit_agent',
     agent: 'AuditAssistantAgent',
-    tool_label: state.appStatus?.gemini_model || 'Gemini 3.x',
+    tool_label: state.appStatus?.reasoning_engine || 'FraudCase AI agent',
     args: {
       question: question.slice(0, 140),
       case_id: state.caseId || 'none',
@@ -149,7 +149,7 @@ async function submitAsk() {
   showPendingTimelineCard(pendingId, {
     label: 'Thinking',
     agent: 'AuditAssistantAgent',
-    toolLabel: state.appStatus?.gemini_model || 'Gemini 3.x',
+    toolLabel: state.appStatus?.reasoning_engine || 'FraudCase AI agent',
     message: 'Interpreting the audit question and loading available context',
   });
   const card = appendTimelineCard('tool_call', toolData);
@@ -167,7 +167,7 @@ async function submitAsk() {
     appendTimelineCard('tool_result', {
       tool: 'ask_audit_agent',
       agent: 'AuditAssistantAgent',
-      tool_label: answer.model || state.appStatus?.gemini_model || 'Gemini 3.x',
+      tool_label: answer.model || state.appStatus?.reasoning_engine || 'FraudCase AI agent',
       count: 1,
     });
     pendingMessage?.remove();
@@ -195,7 +195,7 @@ function appendAskMessage(role, text, model) {
     div.innerHTML = `
       <div class="flex items-center gap-2 mb-3">
         <span class="agent-chip text-[10px]">AuditAssistantAgent</span>
-        <span class="tool-chip text-[10px]">${escHtml(model || state.appStatus?.gemini_model || 'Gemini 3.x')}</span>
+        <span class="tool-chip text-[10px]">${escHtml(model || state.appStatus?.reasoning_engine || 'FraudCase AI agent')}</span>
       </div>
       <div class="ask-answer space-y-3">${formatAskAnswer(text)}</div>
       <p class="text-[11px] text-gray-500 mt-3">AI-generated — requires human review</p>
@@ -215,7 +215,7 @@ function appendAskPendingMessage() {
     <div class="flex items-center gap-2">
       <span class="pending-step step-badge bg-brand-500/15"></span>
       <span class="agent-chip text-[10px]">AuditAssistantAgent</span>
-      <span class="tool-chip text-[10px]">${escHtml(state.appStatus?.gemini_model || 'Gemini 3.x')}</span>
+      <span class="tool-chip text-[10px]">${escHtml(state.appStatus?.reasoning_engine || 'FraudCase AI agent')}</span>
     </div>
     <p class="mt-3 text-sm text-gray-300">
       Analyzing audit context<span class="typing-dots" aria-hidden="true"><span></span><span></span><span></span></span>

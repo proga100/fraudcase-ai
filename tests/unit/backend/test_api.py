@@ -107,14 +107,19 @@ async def test_healthz(client: AsyncClient) -> None:
 
 
 @pytest.mark.anyio
-async def test_status_exposes_runtime_and_gemini_model(client: AsyncClient) -> None:
+async def test_status_exposes_uipath_runtime(client: AsyncClient) -> None:
     resp = await client.get("/api/status")
     assert resp.status_code == 200
     body = resp.json()
     assert body["agent_runtime"] == "mock"
-    assert body["gemini_model"].startswith("gemini-3.")
+    assert body["system_of_record"] == "UiPath Data Service"
+    assert body["evidence_engine"] == "UiPath Context Grounding"
+    assert body["orchestration_layer"] == "UiPath Maestro Case"
     assert body["human_approval"] is True
     assert body["audit_trail"] is True
+    # No Google/Mongo branding should leak into the status payload.
+    assert "gemini_model" not in body
+    assert "mcp_server" not in body
 
 
 @pytest.mark.anyio

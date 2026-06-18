@@ -177,9 +177,9 @@ def process_audit_case_sequence(case_id: str):
 
     # 1. Plan
     plan_text = (
-        "Step 1: Retrieve all invoices for the current billing period from MongoDB.\n"
+        "Step 1: Retrieve all invoices for the current billing period from UiPath Data Service.\n"
         "Step 2: Run deduplication check — exact hash match + structural near-duplicate (Jaccard ≥ 0.85).\n"
-        "Step 3: Run vector similarity search against known fraud exemplars (cosine threshold 0.80).\n"
+        "Step 3: Retrieve semantically similar fraud evidence from UiPath Context Grounding (score ≥ 0.80).\n"
         "Step 4: Check each vendor against OFAC SDN list (fuzzy match ≥ 0.80).\n"
         "Step 5: Apply policy rules — flag invoices exceeding category caps.\n"
         "Step 6: Flag off-hours submissions (midnight–5 AM, weekends).\n"
@@ -226,13 +226,13 @@ def process_audit_case_sequence(case_id: str):
     }, delay=1.1)
 
     send("tool_call", {
-        "tool_name": "vector_similarity_search",
-        "name": "vector_similarity_search",
-        "args": {"model": "gemini-embedding-001", "threshold": 0.80, "exemplar_count": 12}
+        "tool_name": "context_grounding_query",
+        "name": "context_grounding_query",
+        "args": {"index": "fraudcase-ai-evidence", "threshold": 0.80, "exemplar_count": 12}
     }, delay=0.7)
     send("tool_result", {
-        "tool_name": "vector_similarity_search",
-        "name": "vector_similarity_search",
+        "tool_name": "context_grounding_query",
+        "name": "context_grounding_query",
         "count": 2,
         "hit_count": 2,
         "similarity_scores": [0.93, 0.81, 0.78, 0.74, 0.71, 0.68, 0.63, 0.59],
@@ -358,6 +358,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif path == "/api/status":
             self._json({
                 "agent_runtime": "mock",
+                "system_of_record": "UiPath Data Service",
+                "evidence_engine": "UiPath Context Grounding",
+                "context_grounding_index": "fraudcase-ai-evidence",
+                "reasoning_engine": "Deterministic coded agent",
                 "track": "UiPath AgentHack Track 1",
                 "orchestration_layer": "UiPath Maestro Case",
                 "case_management": True,

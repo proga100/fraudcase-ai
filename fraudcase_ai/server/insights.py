@@ -19,7 +19,7 @@ from fraudcase_ai.models import AskResponse, AuditReport
 log = logging.getLogger(__name__)
 
 # Last-resort baseline matching the shape of the generated demo ledger, used only
-# when neither Atlas nor the local demo_dataset files are reachable.
+# when the local demo_dataset files are not reachable.
 _FALLBACK_STATS = {"invoices": 1000, "vendors": 80, "total_spend": 4_800_000.0, "source": "baseline"}
 
 
@@ -30,14 +30,16 @@ def get_status() -> dict:
     agent_runtime = "external_coded_agent" if live else "mock"
     return {
         "mode": "live" if live else "demo",
-        "gemini_model": s.gemini_model,
-        "gemini_active": True,  # planner/report/assistant route through Gemini (with fallback)
-        "mcp_enabled": bool(live and s.atlas_uri and s.use_mcp_reads),
-        "mcp_server": "mongodb-mcp-server (read-only)",
+        # UiPath-first architecture: Data Service is the system of record and
+        # Context Grounding owns embeddings, vector indexing, and retrieval.
+        "system_of_record": "UiPath Data Service",
+        "evidence_engine": "UiPath Context Grounding",
+        "context_grounding_index": s.uipath_context_grounding_index_name,
+        "reasoning_engine": "Deterministic coded agent",
         "agent_runtime": agent_runtime,
         "agent_runtime_label": {
             "mock": "Scripted demo runner",
-            "external_coded_agent": "FastAPI external coded agent",
+            "external_coded_agent": "UiPath external coded agent",
         }[agent_runtime],
         "track": "UiPath AgentHack Track 1",
         "orchestration_layer": "UiPath Maestro Case",
@@ -53,7 +55,7 @@ def get_status() -> dict:
         ],
         "handoffs": ["human", "external_ai_agent", "service_task"],
         "human_approval": True,   # structural gates — always on
-        "audit_trail": True,      # gated writes land in the audit_log collection
+        "audit_trail": True,      # gated writes land in the UiPath Data Service audit log
     }
 
 
@@ -61,32 +63,11 @@ def get_status() -> dict:
 def get_stats() -> dict:
     """Dataset scope for the dashboard's first paint: invoices, vendors, total spend.
 
-    Live mode reads Atlas; demo mode reads the local demo_dataset files; both fall
-    back to a static baseline so the endpoint never fails. Cached per process —
-    the in-scope dataset doesn't change during a demo.
+    Reads the local demo_dataset files (the same fixtures the UiPath clients fall
+    back to without credentials), with a static baseline so the endpoint never
+    fails. Cached per process — the in-scope dataset doesn't change during a demo.
+    Per-case live data flows through the UiPath runner, not this first-paint stat.
     """
-    s = get_settings()
-    if not s.use_mocks and s.atlas_uri:
-        try:
-            from pymongo import MongoClient
-
-            client: MongoClient = MongoClient(s.atlas_uri, serverSelectionTimeoutMS=4000)
-            db = client[s.db_name]
-            total = next(
-                db[s.txn_collection].aggregate([{"$group": {"_id": None, "t": {"$sum": "$amount"}}}]),
-                {},
-            ).get("t", 0.0)
-            stats = {
-                "invoices": db[s.txn_collection].count_documents({}),
-                "vendors": db[s.vendor_collection].count_documents({}),
-                "total_spend": float(total),
-                "source": "mongodb-atlas",
-            }
-            client.close()
-            if stats["invoices"]:
-                return stats
-        except Exception as exc:  # noqa: BLE001 — stats must never break the page
-            log.warning("Atlas stats failed (%s); falling back", type(exc).__name__)
     try:
         invoices = json.loads((DATA_DIR / "invoices.json").read_text())
         vendors = json.loads((DATA_DIR / "vendors.json").read_text())
@@ -103,54 +84,6 @@ def get_stats() -> dict:
 # --------------------------------------------------------------------------- #
 # AI Audit Assistant ("Ask Audit Agent" drawer)
 # --------------------------------------------------------------------------- #
-
-def _case_context(report: Optional[AuditReport]) -> str:
-    """Compact, grounded context block for the assistant prompt."""
-    stats = get_stats()
-    lines = [
-        f"Dataset in scope: {stats['invoices']} invoices from {stats['vendors']} vendors, "
-        f"total spend ${stats['total_spend']:,.0f}.",
-    ]
-    if report is not None:
-        lines.append(
-            f"Current audit case: objective '{report.case_objective}' flagged {report.flagged_count} "
-            f"invoices, ${report.total_at_risk:,.0f} at risk."
-        )
-        for it in report.items[:15]:
-            reasons = ", ".join(r.value for r in it.reasons)
-            lines.append(
-                f"- {it.invoice_id} | {it.vendor_name} | {it.department} | "
-                f"${it.amount:,.0f} | {reasons} | {it.detail}"
-            )
-    else:
-        lines.append("No completed audit case in this session yet.")
-    return "\n".join(lines)
-
-
-def _invoice_context_lines(invoice_context: Optional[dict[str, Any]]) -> list[str]:
-    """Compact invoice evidence block supplied by the UI during Gate 2 review."""
-    if not invoice_context:
-        return []
-    reasons = invoice_context.get("reasons") or []
-    if isinstance(reasons, str):
-        reasons_text = reasons
-    else:
-        reasons_text = ", ".join(str(r).replace("_", " ") for r in reasons)
-    amount = invoice_context.get("amount") or 0
-    try:
-        amount_text = f"${float(amount):,.0f}"
-    except (TypeError, ValueError):
-        amount_text = str(amount)
-    return [
-        "Clicked invoice evidence:",
-        f"- invoice_id: {invoice_context.get('invoice_id', 'unknown')}",
-        f"- vendor: {invoice_context.get('vendor_name', 'unknown')}",
-        f"- department: {invoice_context.get('department', 'unknown')}",
-        f"- amount: {amount_text}",
-        f"- reasons: {reasons_text or 'not supplied'}",
-        f"- evidence: {invoice_context.get('detail') or 'not supplied'}",
-    ]
-
 
 def _template_invoice_answer(invoice_context: dict[str, Any]) -> str:
     reasons = invoice_context.get("reasons") or []
@@ -209,30 +142,11 @@ def answer_question(
     report: Optional[AuditReport],
     invoice_context: Optional[dict[str, Any]] = None,
 ) -> AskResponse:
-    """Answer via Gemini when live, else via the grounded template."""
-    s = get_settings()
-    fallback = _template_answer(question, report, invoice_context)
-    if s.use_mocks or not s.gcp_project:
-        return AskResponse(answer=fallback, model="demo-template")
+    """Answer with a deterministic, grounded template.
 
-    from fraudcase_ai.agent import llm
-
-    context = "\n".join([
-        _case_context(report),
-        *_invoice_context_lines(invoice_context),
-    ])
-    prompt = (
-        "You are the AI Audit Assistant inside FraudCase AI, a corporate-finance fraud "
-        "audit console. Answer the auditor's question using ONLY the context below. Be "
-        "concrete, cite invoice IDs and amounts, and keep it under 150 words. For invoice "
-        "review questions, structure the answer as: why flagged, evidence, what to verify "
-        "next, and recommended action. You may derive practical verification steps from "
-        "the supplied flags and evidence, but do not invent missing vendor documents, "
-        "contracts, approvals, or source-system records. Only say context is missing for "
-        "specific factual claims not present in the evidence. If no completed audit case is "
-        "available and no clicked invoice evidence is supplied, keep the answer to 2 short "
-        "sentences: state the dataset scope and tell the auditor to open an audit case first.\n\n"
-        f"CONTEXT:\n{context}\n\nQUESTION: {question.strip()}"
-    )
-    answer = llm.generate(prompt, fallback=fallback)
-    return AskResponse(answer=answer, model=s.gemini_model)
+    The assistant stays fully UiPath-first: it cites only the flagged findings and
+    Context-Grounding evidence already present in the case, with no external LLM call.
+    """
+    answer = _template_answer(question, report, invoice_context)
+    model = "demo-template" if get_settings().use_mocks else "uipath-grounded"
+    return AskResponse(answer=answer, model=model)

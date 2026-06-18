@@ -62,9 +62,10 @@ class Invoice(BaseModel):
     is_ghost_vendor: bool = False
     is_fraud_exemplar: bool = False
     fraud_label: int = 0
-    # retrieval
+    # retrieval — embeddings + vector indexing are owned by UiPath Context Grounding;
+    # these fields only carry the local/demo dataset text used by the offline fallback.
     embedding_text: str = ""
-    embedding: Optional[list[float]] = None  # 768-dim gemini-embedding-001, set at load
+    embedding: Optional[list[float]] = None
 
 
 # --------------------------------------------------------------------------- #

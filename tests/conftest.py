@@ -1,4 +1,4 @@
-"""Shared test fixtures for all slices. No network, no creds — mongomock + fakes only.
+"""Shared test fixtures for all slices. No network, no creds — local fixtures only.
 
 Slices may add their own fixtures, but these shared ones define the canonical sample
 data every slice tests against.
@@ -9,12 +9,10 @@ from __future__ import annotations
 import hashlib
 import os
 
-# Tests always run against mongomock, which has no $vectorSearch. Force mock mode
-# regardless of .env (which may set USE_MOCKS=false for live runs). Env vars take
-# precedence over the .env file in pydantic-settings.
+# Force mock mode regardless of .env (which may set USE_MOCKS=false for live runs).
+# Env vars take precedence over the .env file in pydantic-settings.
 os.environ["USE_MOCKS"] = "true"
 
-import mongomock
 import pytest
 
 from fraudcase_ai.config import get_settings
@@ -25,13 +23,13 @@ from fraudcase_ai.models import Invoice, Policy, Vendor
 
 
 # --------------------------------------------------------------------------- #
-# Deterministic fake embedder (stands in for gemini-embedding-001 in tests)
+# Deterministic fake embedder for the local/demo fixtures (no external model)
 # --------------------------------------------------------------------------- #
 def fake_embed(text: str, dims: int = 8) -> list[float]:
     """Deterministic pseudo-embedding so cosine tests are reproducible.
 
     Identical text -> identical vector; similar text -> closer vectors (shared prefix
-    of the hash). Good enough to exercise dedup/vector logic without a real model.
+    of the hash). Good enough to exercise dedup logic without a real model.
     """
     h = hashlib.sha256(text.encode()).digest()
     return [b / 255.0 for b in h[:dims]]
@@ -91,13 +89,13 @@ def invoices(embedder) -> list[Invoice]:
 
 
 # --------------------------------------------------------------------------- #
-# In-memory MongoDB (mongomock) populated with the sample data
+# Sample records as raw dicts (the shape UiPath Data Service returns)
 # --------------------------------------------------------------------------- #
 @pytest.fixture
-def mock_db(invoices, vendors, policies):
-    client = mongomock.MongoClient()
-    db = client["fraudcase_ai"]
-    db.transactions.insert_many([i.model_dump(mode="json") for i in invoices])
-    db.vendors.insert_many([v.model_dump(mode="json") for v in vendors])
-    db.policies.insert_many([p.model_dump(mode="json") for p in policies])
-    return db
+def records(invoices, vendors, policies):
+    """Transactions, vendors, and policies as JSON-able dicts for the UiPath path."""
+    return (
+        [i.model_dump(mode="json") for i in invoices],
+        [v.model_dump(mode="json") for v in vendors],
+        [p.model_dump(mode="json") for p in policies],
+    )
