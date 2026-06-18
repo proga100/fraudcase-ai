@@ -22,7 +22,7 @@ import httpx
 
 from fraudcase_ai.config import DATA_DIR, Settings, get_settings
 from fraudcase_ai.data.load import load_json_dir
-from fraudcase_ai.models import FlaggedItem
+from fraudcase_ai.models import FlaggedItem, Invoice, Policy, Vendor
 
 
 def _extract_records(payload: Any) -> list[dict[str, Any]]:
@@ -35,6 +35,26 @@ def _extract_records(payload: Any) -> list[dict[str, Any]]:
             if isinstance(value, list):
                 return [r for r in value if isinstance(r, dict)]
     return []
+
+
+def _canon(name: str) -> str:
+    """Underscore-insensitive, case-insensitive key for matching field names.
+
+    UiPath Data Service strips underscores from field display names to form the
+    stored Name (``invoice_id`` -> ``invoiceid``), so we match on this canonical
+    form in both directions.
+    """
+    return name.replace("_", "").lower()
+
+
+def _remap_to_model(records: list[dict[str, Any]], model: type) -> list[dict[str, Any]]:
+    """Map UiPath Data Service records (underscore-stripped keys) to model fields."""
+    fields = list(model.model_fields)
+    mapped: list[dict[str, Any]] = []
+    for record in records:
+        norm = {_canon(str(k)): v for k, v in record.items()}
+        mapped.append({f: norm[_canon(f)] for f in fields if _canon(f) in norm})
+    return mapped
 
 
 @dataclass(frozen=True)
@@ -96,10 +116,17 @@ class DataServiceStore:
     async def load_case_dataset(self) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
         """Return transactions, vendors, and policies from UiPath Data Service."""
         if self.configured:
-            return await asyncio.gather(
+            transactions, vendors, policies = await asyncio.gather(
                 self._get_records(self._settings.uipath_dataservice_transactions_url),
                 self._get_records(self._settings.uipath_dataservice_vendors_url),
                 self._get_records(self._settings.uipath_dataservice_policies_url),
+            )
+            # Data Service stores underscore-stripped field Names; map back to the
+            # model field names the detector suite expects.
+            return (
+                _remap_to_model(transactions, Invoice),
+                _remap_to_model(vendors, Vendor),
+                _remap_to_model(policies, Policy),
             )
         data = load_json_dir(DATA_DIR)
         return data["invoices"], data["vendors"], data["policies"]
@@ -110,20 +137,33 @@ class DataServiceStore:
         objective: str,
         approved_items: list[FlaggedItem],
     ) -> dict[str, Any]:
-        """Append the Gate-2 approved audit outcome to UiPath Data Service."""
+        """Append the Gate-2 approved audit outcome to the UiPath Data Service AuditLog."""
+        invoice_ids = [item.invoice_id for item in approved_items]
+        total_at_risk = sum(item.amount for item in approved_items)
+        # Canonical record we return to callers (underscored, model-friendly).
         payload = {
             "case_id": case_id,
             "case_objective": objective,
-            "invoice_ids": [item.invoice_id for item in approved_items],
+            "invoice_ids": invoice_ids,
             "count": len(approved_items),
-            "total_at_risk": sum(item.amount for item in approved_items),
+            "total_at_risk": total_at_risk,
             "approved_findings": [item.model_dump(mode="json") for item in approved_items],
             "ts": datetime.now(timezone.utc).isoformat(),
             "source": "uipath_data_service",
         }
         url = self._settings.uipath_dataservice_audit_log_url
         if url:
-            await self._post(url, payload)
+            # The AuditLog entity uses underscore-stripped field Names and only the
+            # scalar fields it defines; invoice_ids is a Text field (comma-joined).
+            wire = {
+                "caseid": case_id,
+                "caseobjective": objective,
+                "invoiceids": ",".join(invoice_ids),
+                "count": len(approved_items),
+                "totalatrisk": total_at_risk,
+                "source": "uipath_data_service",
+            }
+            await self._post(url, wire)
         return payload
 
     async def _get_records(self, url: str) -> list[dict[str, Any]]:

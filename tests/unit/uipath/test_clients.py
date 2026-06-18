@@ -80,6 +80,42 @@ class TestDataServiceStore:
 
     @pytest.mark.anyio
     @respx.mock
+    async def test_reads_map_underscore_stripped_field_names(self):
+        """UiPath stores `invoice_id` as `invoiceid`; reads must map back to model fields."""
+        s = Settings(
+            uipath_dataservice_transactions_url="https://ds.test/Transaction",
+            uipath_dataservice_vendors_url="https://ds.test/Vendor",
+            uipath_dataservice_policies_url="https://ds.test/Policy",
+        )
+        respx.get("https://ds.test/Transaction").mock(return_value=httpx.Response(200, json={"value": [{
+            "invoiceid": "INV-1", "vendorid": "v1", "vendorname": "Acme", "department": "IT",
+            "category": "Software", "amount": 9000.0, "paymentmethod": "ACH",
+            "invoicedate": "2026-01-01", "paymenthour": 3, "approvedby": "A", "notes": "n",
+            "isghostvendor": False,
+        }]}))
+        respx.get("https://ds.test/Vendor").mock(return_value=httpx.Response(200, json=[{
+            "vendorid": "v1", "vendorname": "Acme", "country": "USA", "category": "Software",
+            "onboarded": "2022-01-01", "isghost": False, "riskscore": 0.1,
+        }]))
+        respx.get("https://ds.test/Policy").mock(return_value=httpx.Response(200, json=[{
+            "ruleid": "P1", "category": "*", "maxamount": 100000.0, "text": "CFO approval",
+        }]))
+        store = DataServiceStore(settings=s)
+        txns, vendors, policies = await store.load_case_dataset()
+        # Keys are remapped to the model field names (with underscores).
+        assert txns[0]["invoice_id"] == "INV-1"
+        assert txns[0]["vendor_id"] == "v1"
+        assert txns[0]["payment_hour"] == 3
+        assert vendors[0]["vendor_id"] == "v1"
+        assert policies[0]["rule_id"] == "P1"
+        # And the remapped dicts validate cleanly against the models.
+        from fraudcase_ai.models import Invoice, Policy, Vendor
+        Invoice.model_validate(txns[0])
+        Vendor.model_validate(vendors[0])
+        Policy.model_validate(policies[0])
+
+    @pytest.mark.anyio
+    @respx.mock
     async def test_write_audit_log_posts_payload(self):
         s = Settings(uipath_dataservice_audit_log_url="https://ds.test/AuditLog")
         route = respx.post("https://ds.test/AuditLog").mock(
@@ -95,11 +131,16 @@ class TestDataServiceStore:
         payload = await store.write_audit_log("case-1", "audit objective", items)
 
         assert route.called
+        # Returned payload keeps the canonical underscored shape.
         assert payload["count"] == 2
         assert payload["total_at_risk"] == 350.0
+        assert payload["invoice_ids"] == ["INV-1", "INV-2"]
+        # Wire body uses UiPath's underscore-stripped field Names; invoice_ids is a
+        # comma-joined Text field.
         sent = json.loads(route.calls.last.request.content)
-        assert sent["case_id"] == "case-1"
-        assert sent["invoice_ids"] == ["INV-1", "INV-2"]
+        assert sent["caseid"] == "case-1"
+        assert sent["invoiceids"] == "INV-1,INV-2"
+        assert sent["totalatrisk"] == 350.0
         assert sent["source"] == "uipath_data_service"
 
     @pytest.mark.anyio
