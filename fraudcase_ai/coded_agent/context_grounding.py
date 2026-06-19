@@ -8,6 +8,7 @@ local demo dataset scorer shared with the FastAPI demo path.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Callable
 
 from fraudcase_ai.config import get_settings
@@ -18,21 +19,60 @@ from fraudcase_ai.uipath.clients import ContextGroundingRetriever
 # agent trivially testable with a fake.
 RetrieveFn = Callable[[str, int], list[dict[str, Any]]]
 
+# invoice_id is a UUID in our data. Under Basic (text) ingestion of the CSV,
+# Context Grounding returns chunk *text* (not structured columns), so we recover
+# invoice_id(s) by matching UUIDs in the chunk content; the evidence text always
+# leads with "Invoice <invoice_id> from vendor ...".
+_UUID_RE = re.compile(
+    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+)
+_TEXT_KEYS = ("content", "text", "page_content", "chunk", "snippet", "value")
+_SCORE_KEYS = ("score", "similarity", "relevance", "_score")
+
+
+def _get(item: Any, key: str) -> Any:
+    return item.get(key) if isinstance(item, dict) else getattr(item, key, None)
+
+
+def _result_text(item: Any) -> str:
+    for key in _TEXT_KEYS:
+        value = _get(item, key)
+        if isinstance(value, str) and value:
+            return value
+    return ""
+
+
+def _result_score(item: Any) -> float:
+    for key in _SCORE_KEYS:
+        value = _get(item, key)
+        if value is not None:
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                pass
+    return 0.0
+
 
 def _normalize(results: Any) -> list[dict[str, Any]]:
-    """Map UiPath Context Grounding search results to {invoice_id, score} hits."""
+    """Map UiPath Context Grounding search results to {invoice_id, score} hits.
+
+    Prefers an explicit ``invoice_id`` (metadata/field) when present; otherwise
+    extracts UUID invoice ids from the chunk text. Results are ordered by score, so
+    we keep the first (highest) score seen per invoice_id.
+    """
     hits: list[dict[str, Any]] = []
+    seen: set[str] = set()
     for item in results or []:
-        get = item.get if isinstance(item, dict) else (lambda k, _i=item: getattr(_i, k, None))
-        metadata = get("metadata") or {}
+        metadata = _get(item, "metadata") or {}
         meta_get = metadata.get if isinstance(metadata, dict) else (lambda k: getattr(metadata, k, None))
-        invoice_id = get("invoice_id") or meta_get("invoice_id") or get("id")
-        score = get("score")
-        if score is None:
-            score = get("similarity") or meta_get("score") or 0.0
-        if invoice_id:
-            hits.append({"invoice_id": invoice_id, "score": float(score or 0.0),
-                         "source": "uipath_context_grounding"})
+        explicit = _get(item, "invoice_id") or meta_get("invoice_id")
+        score = _result_score(item)
+        invoice_ids = [explicit] if explicit else _UUID_RE.findall(_result_text(item))
+        for iid in invoice_ids:
+            if iid and iid not in seen:
+                seen.add(iid)
+                hits.append({"invoice_id": iid, "score": score,
+                             "source": "uipath_context_grounding"})
     return hits
 
 
