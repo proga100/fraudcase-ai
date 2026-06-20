@@ -80,16 +80,19 @@ Entrypoints (see [`coded_agent/main.py`](../fraudcase_ai/coded_agent/main.py)):
 
 ## Phase 3 — Agent Builder for plan reasoning
 
-1. In **Agent Builder**, create an agent (e.g. `Audit Plan Agent`) that takes
-   `objective` and returns an audit `plan`. Deploy it.
-2. Set the agent name for the coded agent:
+1. In **Agent Builder**, create an agent named `Audit Plan Agent` taking `objective`
+   (String) and returning `plan` (String). Publish it (it becomes an Orchestrator
+   process/release).
+2. Point the coded agent at it:
    ```env
    UIPATH_PLAN_AGENT_NAME=Audit Plan Agent
+   UIPATH_PLAN_AGENT_FOLDER=Shared      # the Orchestrator folder it's published in
    ```
-3. `plan()` then calls the Agent Builder agent (`_invoke_plan_agent`) and falls back
-   to the deterministic planner if it is unset or fails. Validate/adjust the SDK
-   invocation in [`coded_agent/main.py`](../fraudcase_ai/coded_agent/main.py) against
-   your tenant's agent-invocation API.
+3. `plan()` calls it synchronously via `sdk.processes.invoke(name, input_arguments=
+   {"objective": ...}, folder_path=...)` and reads `OutputArguments.plan`
+   (`_invoke_plan_agent` in [`coded_agent/main.py`](../fraudcase_ai/coded_agent/main.py)),
+   falling back to the deterministic planner if it is unset or fails. Verify the folder
+   path at runtime — the published folder must be reachable from the coded agent's context.
 
 ## Phase 4 — Maestro Case orchestration
 

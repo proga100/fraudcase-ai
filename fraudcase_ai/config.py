@@ -41,10 +41,12 @@ class Settings(BaseSettings):
     uipath_context_grounding_query_url: str = ""
     uipath_context_grounding_index_name: str = "fraudcase-ai-evidence"
 
-    # Coded-agent reasoning: name of the UiPath Agent Builder agent that authors
-    # the audit plan (Phase 3). Empty -> the coded agent uses its deterministic
-    # planner. The agent itself is created tenant-side in Agent Builder.
+    # Coded-agent reasoning: the UiPath Agent Builder agent (published as an
+    # Orchestrator process) that authors the audit plan. Empty name -> the coded
+    # agent uses its deterministic planner. Folder is the Orchestrator folder the
+    # agent is published in (path form, e.g. "Shared"); empty -> SDK default context.
     uipath_plan_agent_name: str = ""
+    uipath_plan_agent_folder: str = ""
 
     # --- OFAC ---
     ofac_sdn_url: str = "https://www.treasury.gov/ofac/downloads/sdn.csv"

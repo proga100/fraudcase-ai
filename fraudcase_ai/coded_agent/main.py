@@ -29,25 +29,39 @@ MAX_FLAGGED = 40
 # Phase 3 hook: reasoning via a UiPath Agent Builder agent
 # --------------------------------------------------------------------------- #
 
-def _invoke_plan_agent(agent_name: str, objective: str) -> str | None:
-    """Run the configured Agent Builder agent to author the plan, via the SDK.
+def _extract_plan(result: Any) -> str | None:
+    """Pull the ``plan`` text out of an Orchestrator job result (dict or object)."""
+    if result is None:
+        return None
+    args: Any = result
+    for attr in ("output_arguments", "outputArguments", "output"):
+        value = result.get(attr) if isinstance(result, dict) else getattr(result, attr, None)
+        if value:
+            args = value
+            break
+    if isinstance(args, dict):
+        text = args.get("plan") or args.get("output") or args.get("result")
+        return str(text) if text else None
+    return str(args) if args else None
 
+
+def _invoke_plan_agent(agent_name: str, objective: str) -> str | None:
+    """Run the Agent Builder 'Audit Plan Agent' (published as an Orchestrator process).
+
+    Calls it synchronously via the UiPath SDK and returns OutputArguments.plan.
     Best-effort and defensive: any failure (SDK missing, agent not deployed, bad
     output) returns None so the caller falls back to the deterministic planner.
-    The agent itself is created tenant-side in Agent Builder (see docs).
     """
     try:
         from uipath.platform import UiPath  # lazy: runtime-only
 
         sdk = UiPath()
-        result = sdk.processes.invoke(  # type: ignore[attr-defined]
-            name=agent_name,
-            input_arguments={"objective": objective},
-        )
-        if isinstance(result, dict):
-            text = result.get("plan") or result.get("output") or result.get("result")
-            return str(text) if text else None
-        return str(result) if result else None
+        kwargs: dict[str, Any] = {"input_arguments": {"objective": objective}}
+        folder = get_settings().uipath_plan_agent_folder
+        if folder:
+            kwargs["folder_path"] = folder
+        result = sdk.processes.invoke(agent_name, **kwargs)  # type: ignore[attr-defined]
+        return _extract_plan(result)
     except Exception:
         return None
 

@@ -12,7 +12,7 @@ from types import SimpleNamespace
 import pytest
 
 from fraudcase_ai.coded_agent import main as ca
-from fraudcase_ai.coded_agent.main import _finalize, _investigate, _plan
+from fraudcase_ai.coded_agent.main import _extract_plan, _finalize, _investigate, _plan
 
 
 class FakeStore:
@@ -66,6 +66,20 @@ async def test_plan_falls_back_when_agent_returns_nothing(monkeypatch):
     monkeypatch.setattr(ca, "get_settings", lambda: SimpleNamespace(uipath_plan_agent_name="Audit Plan Agent"))
     out = await _plan("Audit vendor payments", invoke_agent=lambda name, obj: None)
     assert out["plan_source"] == "deterministic"
+
+
+def test_extract_plan_from_job_output_shapes():
+    # dict with output_arguments (Orchestrator job result shape)
+    assert _extract_plan({"output_arguments": {"plan": "P1"}}) == "P1"
+    # plain dict
+    assert _extract_plan({"plan": "P2"}) == "P2"
+    # object with attribute
+    class Job:
+        output_arguments = {"plan": "P3"}
+    assert _extract_plan(Job()) == "P3"
+    # nothing usable
+    assert _extract_plan(None) is None
+    assert _extract_plan({"output_arguments": {}}) is None
 
 
 # --------------------------------------------------------------------------- #
