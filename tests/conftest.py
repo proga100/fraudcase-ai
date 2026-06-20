@@ -13,6 +13,17 @@ import os
 # Env vars take precedence over the .env file in pydantic-settings.
 os.environ["USE_MOCKS"] = "true"
 
+# Keep tests hermetic from a populated .env (real tenant creds/URLs): blank the
+# UiPath settings so tests never make a live token/API call unless they set values
+# explicitly on a Settings() instance. Env vars override the .env file.
+for _k in (
+    "UIPATH_OAUTH_TOKEN_URL", "UIPATH_CLIENT_ID", "UIPATH_CLIENT_SECRET", "UIPATH_SCOPE",
+    "UIPATH_DATASERVICE_TRANSACTIONS_URL", "UIPATH_DATASERVICE_VENDORS_URL",
+    "UIPATH_DATASERVICE_POLICIES_URL", "UIPATH_DATASERVICE_AUDIT_LOG_URL",
+    "UIPATH_CONTEXT_GROUNDING_QUERY_URL", "UIPATH_PLAN_AGENT_NAME", "UIPATH_PLAN_AGENT_FOLDER",
+):
+    os.environ[_k] = ""
+
 import pytest
 
 from fraudcase_ai.config import get_settings

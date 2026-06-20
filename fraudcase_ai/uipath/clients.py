@@ -14,11 +14,14 @@ Local fallback:
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
 import httpx
+
+log = logging.getLogger(__name__)
 
 from fraudcase_ai.config import DATA_DIR, Settings, get_settings
 from fraudcase_ai.data.load import load_json_dir
@@ -114,20 +117,29 @@ class DataServiceStore:
         )
 
     async def load_case_dataset(self) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
-        """Return transactions, vendors, and policies from UiPath Data Service."""
+        """Return transactions, vendors, and policies from UiPath Data Service.
+
+        Falls back to the bundled demo dataset if Data Service is not configured or a
+        read fails (e.g. the tenant blocks the caller from entity records) so the
+        agent degrades gracefully instead of crashing.
+        """
         if self.configured:
-            transactions, vendors, policies = await asyncio.gather(
-                self._get_records(self._settings.uipath_dataservice_transactions_url),
-                self._get_records(self._settings.uipath_dataservice_vendors_url),
-                self._get_records(self._settings.uipath_dataservice_policies_url),
-            )
-            # Data Service stores underscore-stripped field Names; map back to the
-            # model field names the detector suite expects.
-            return (
-                _remap_to_model(transactions, Invoice),
-                _remap_to_model(vendors, Vendor),
-                _remap_to_model(policies, Policy),
-            )
+            try:
+                transactions, vendors, policies = await asyncio.gather(
+                    self._get_records(self._settings.uipath_dataservice_transactions_url),
+                    self._get_records(self._settings.uipath_dataservice_vendors_url),
+                    self._get_records(self._settings.uipath_dataservice_policies_url),
+                )
+                # Data Service stores underscore-stripped field Names; map back to the
+                # model field names the detector suite expects.
+                return (
+                    _remap_to_model(transactions, Invoice),
+                    _remap_to_model(vendors, Vendor),
+                    _remap_to_model(policies, Policy),
+                )
+            except Exception as exc:  # noqa: BLE001 — degrade to the bundled dataset
+                log.warning("Data Service read failed (%s); using bundled demo dataset",
+                            type(exc).__name__)
         data = load_json_dir(DATA_DIR)
         return data["invoices"], data["vendors"], data["policies"]
 

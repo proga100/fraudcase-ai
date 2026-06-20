@@ -116,6 +116,23 @@ class TestDataServiceStore:
 
     @pytest.mark.anyio
     @respx.mock
+    async def test_read_failure_falls_back_to_bundled_dataset(self):
+        """A blocked/errored Data Service read degrades to the demo dataset, not a crash."""
+        s = Settings(
+            uipath_dataservice_transactions_url="https://ds.test/Transaction",
+            uipath_dataservice_vendors_url="https://ds.test/Vendor",
+            uipath_dataservice_policies_url="https://ds.test/Policy",
+        )
+        respx.get("https://ds.test/Transaction").mock(return_value=httpx.Response(403, json={"error": "no"}))
+        respx.get("https://ds.test/Vendor").mock(return_value=httpx.Response(403, json={"error": "no"}))
+        respx.get("https://ds.test/Policy").mock(return_value=httpx.Response(403, json={"error": "no"}))
+        store = DataServiceStore(settings=s)
+        txns, vendors, policies = await store.load_case_dataset()
+        # Fell back to the bundled dataset (non-empty), no exception raised.
+        assert len(txns) > 0 and len(vendors) > 0 and len(policies) > 0
+
+    @pytest.mark.anyio
+    @respx.mock
     async def test_write_audit_log_posts_payload(self):
         s = Settings(uipath_dataservice_audit_log_url="https://ds.test/AuditLog")
         route = respx.post("https://ds.test/AuditLog").mock(
