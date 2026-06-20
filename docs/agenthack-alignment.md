@@ -96,14 +96,22 @@ Entrypoints (see [`coded_agent/main.py`](../fraudcase_ai/coded_agent/main.py)):
 
 ## Phase 4 — Maestro Case orchestration
 
-Build the BPMN case in Maestro per [`uipath/maestro-case-blueprint.md`](../uipath/maestro-case-blueprint.md);
+Build the BPMN 2.0 case in **Studio Web** (Maestro "Start modeling" → Studio Web);
 the contract is in [`uipath/fraudcase-ai-openapi.yaml`](../uipath/fraudcase-ai-openapi.yaml).
 
-- Service tasks call the coded agent's `plan` / `investigate` / `finalize` (or the
-  FastAPI Maestro adapter endpoints) via **API Workflows**.
-- **Action Center** human tasks implement Gate 1 (plan) and Gate 2 (findings).
-- Persist `case_id`; drive the case view from `maestro_stage`; route Context
-  Grounding exceptions to a review task.
+Verified tenant constraints (staging `hackathon26_739`):
+- **Action Center is not enabled**, so model Gate 1 / Gate 2 as BPMN **User tasks**
+  (a User task suspends the instance until completed — a valid human-in-the-loop gate).
+  Resume on task completion, or via a Signal/Message catch event from an approval surface.
+- Invoke the agents with **Call activity / Agentic task** (no first-class HTTP/Data
+  Service BPMN element; use a Service task / invoked workflow for those).
+- Agents must live in a **Shared** (standard) folder to be callable by the Case —
+  publish the coded agent to Shared and move "Audit Plan Agent" there too.
+
+Case flow: Start → Agentic task `Audit Plan Agent` (or coded `plan`) → **User task (Gate 1)**
+→ Call activity coded `investigate` → **User task (Gate 2)** → Call activity coded
+`finalize` → End. Persist `case_id`; drive the case view from `maestro_stage`; route
+Context Grounding exceptions (from `investigate`'s `exceptions`) to a review path.
 
 ## Phase 5 — Submission
 
